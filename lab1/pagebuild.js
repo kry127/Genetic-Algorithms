@@ -146,6 +146,7 @@ var cfg = {
         }
     }
 };
+//https://stackoverflow.com/questions/40086575/chart-js-draw-mathematical-function
 var chart = new Chart(ctx, cfg); // finally, create instance of the chart
 
 // some utility stuff
