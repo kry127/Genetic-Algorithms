@@ -70,6 +70,7 @@ for (let k = 0; k < control_panels.length; k++)
 
 
 // chart drawing part
+// color table
 chartColors = {
 	red: 'rgb(255, 99, 132)',
 	orange: 'rgb(255, 159, 64)',
@@ -79,10 +80,14 @@ chartColors = {
 	purple: 'rgb(153, 102, 255)',
 	grey: 'rgb(201, 203, 207)'
 };
+// function for deepcopying settings
+function clone(object) {return JSON.parse(JSON.stringify(object))}
 
 var ctx = document.getElementById("myChart");
-var labels = []
-var datasetFitness = {
+var generation_labels = [] // for generation # dependency
+var function_labels = [] // for function argument dependency
+// define basic parameters for datasets
+var datasetProto = {
     label: 'Fitness',
     data: [],
     type: 'line',
@@ -91,26 +96,42 @@ var datasetFitness = {
     lineTension: 0,
     borderWidth: 2
 }
-function clone(object) {return JSON.parse(JSON.stringify(object))}
-var datasetMinFitness = clone(datasetFitness)
+
+// fitness minimum dataset
+var datasetMinFitness = clone(datasetProto)
 datasetMinFitness.label = 'Fitness min'
 datasetMinFitness.backgroundColor = chartColors.purple
 datasetMinFitness.borderColor = chartColors.purple
 
-var datasetAvgFitness = clone(datasetFitness)
+// fitness average dataset
+var datasetAvgFitness = clone(datasetProto)
 datasetAvgFitness.backgroundColor = chartColors.yellow
 datasetAvgFitness.borderColor = chartColors.yellow
 datasetAvgFitness.label = 'Fitness avg'
 
-var datasetMaxFitness = clone(datasetFitness)
+// fitness max dataset
+var datasetMaxFitness = clone(datasetProto)
 datasetMaxFitness.backgroundColor = chartColors.red
 datasetMaxFitness.borderColor = chartColors.red
 datasetMaxFitness.label = 'Fitness max'
 
+// original function dataset
+var datasetFunction = clone(datasetProto)
+datasetFunction.label = "f(x)"
+datasetFunction.lineTension = 0.4 // Bezier tension
+datasetMaxFitness.backgroundColor = chartColors.blue
+datasetMaxFitness.borderColor = chartColors.blue
+
+// scattered generation dataset
+//https://stackoverflow.com/questions/42841925/mixed-chart-scatter-plot-with-chart-js
+var datasetGeneration = clone(datasetProto)
+datasetGeneration.type = "bubble"
+datasetGeneration.label = "generation"
+
 var cfg = {
     type: 'line',
     data: {
-        labels: labels,
+        labels: generation_labels,
         datasets: [datasetMinFitness, datasetMaxFitness, datasetAvgFitness]
     },
     options: {
@@ -206,7 +227,7 @@ function lab1_data_callback(data_array, generation) {
             t: entry.step,
             y: entry.max
         })
-        labels.push("#" + entry.step)
+        generation_labels.push("#" + entry.step)
     }
 
     // dataset_idx -> data_array_idx
@@ -223,7 +244,7 @@ function lab1_data_callback(data_array, generation) {
         clearArray(datasetMinFitness.data)
         clearArray(datasetAvgFitness.data)
         clearArray(datasetMaxFitness.data)
-        clearArray(labels)
+        clearArray(generation_labels)
         for (let k = 0; k*step < data_array.length; k++) {
             addEntry(data_array[k*step])
         }
@@ -241,7 +262,7 @@ function create_lab1() {
     clearArray(datasetMinFitness.data)
     clearArray(datasetAvgFitness.data)
     clearArray(datasetMaxFitness.data)
-    clearArray(labels)
+    clearArray(generation_labels)
     chart.update()
 
     input_L.onchange = ev=>lab1.setL(Number(input_L.value))
@@ -300,7 +321,7 @@ function reset_lab1() {
     clearArray(datasetMinFitness.data)
     clearArray(datasetAvgFitness.data)
     clearArray(datasetMaxFitness.data)
-    clearArray(labels)
+    clearArray(generation_labels)
     chart.update()
 }
 
