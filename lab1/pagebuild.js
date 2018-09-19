@@ -4,6 +4,7 @@ var btn_step = document.getElementById("btn_step")
 var brn_run = document.getElementById("btn_run")
 var btn_continuous_run = document.getElementById("btn_continuous_run")
 var btn_reset = document.getElementById("btn_reset")
+var select_graphic_select = document.getElementById("visualize_control_select_graphic")
 
 //Make the DIV element draggagle:
 // https://www.w3schools.com/howto/howto_js_draggable.asp
@@ -70,6 +71,14 @@ for (let k = 0; k < control_panels.length; k++)
 
 
 // chart drawing part
+// some utility stuff
+function clearArray(arr) {arr.splice(0, arr.length)}
+function addToArray(dst, src) {
+    for (let k = 0; k < src.length; k++)
+        dst.push(src[k])
+}
+// function for deepcopying settings
+function clone(object) {return JSON.parse(JSON.stringify(object))}
 // color table
 chartColors = {
 	red: 'rgb(255, 99, 132)',
@@ -78,10 +87,9 @@ chartColors = {
 	green: 'rgb(75, 192, 192)',
 	blue: 'rgb(54, 162, 235)',
 	purple: 'rgb(153, 102, 255)',
-	grey: 'rgb(201, 203, 207)'
+	grey: 'rgb(201, 203, 207)',
+	none: 'transparent'
 };
-// function for deepcopying settings
-function clone(object) {return JSON.parse(JSON.stringify(object))}
 
 var ctx = document.getElementById("myChart");
 var generation_labels = [] // for generation # dependency
@@ -119,16 +127,26 @@ datasetMaxFitness.label = 'Fitness max'
 var datasetFunction = clone(datasetProto)
 datasetFunction.label = "f(x)"
 datasetFunction.lineTension = 0.4 // Bezier tension
-datasetMaxFitness.backgroundColor = chartColors.blue
-datasetMaxFitness.borderColor = chartColors.blue
+datasetFunction.backgroundColor = chartColors.blue
+datasetFunction.borderColor = chartColors.blue
+datasetFunction.pointRadius = 0.1,
+datasetFunction.pointHoverRadius = 0.1
+for (let x = -5; x <=5; x += 0.02) {
+    datasetFunction.data.push({
+        x: x,
+        y: fitness_function(x)
+    })
+}
 
 // scattered generation dataset
 //https://stackoverflow.com/questions/42841925/mixed-chart-scatter-plot-with-chart-js
 var datasetGeneration = clone(datasetProto)
 datasetGeneration.type = "bubble"
 datasetGeneration.label = "generation"
+datasetGeneration.backgroundColor = chartColors.none
+datasetGeneration.borderColor = chartColors.red
 
-var cfg = {
+var cfg_maxminavg = {
     type: 'line',
     data: {
         labels: generation_labels,
@@ -155,10 +173,41 @@ var cfg = {
             }]
         },
         animation: {
-            onProgress: function(animation) {
-                //console.log("Animation in progress...")
-                //progress.value = animation.animationObject.currentStep / animation.animationObject.numSteps;
-            },
+            onComplete: function(animation) {
+                console.log("Animation complete!")
+                if (running)
+                    setTimeout(run_continuously_lab1, 0)
+            }
+        }
+    }
+};
+var cfg_function = {
+    type:'scatter',
+    data: {
+        labels: function_labels,
+        datasets: [datasetFunction, datasetGeneration]
+    },
+    options: {
+        responsive: true,
+        tooltips: {
+            mode: 'index',
+        },
+        hover: {
+            mode: 'index'
+        },
+        scales: {
+            xAxes: [{
+                display: true,
+                labelString: 'x',
+            }],
+            yAxes: [{
+                scaleLabel: {
+                    display: true,
+                    labelString: 'Fitness'
+                }
+            }]
+        },
+        animation: {
             onComplete: function(animation) {
                 console.log("Animation complete!")
                 if (running)
@@ -168,10 +217,25 @@ var cfg = {
     }
 };
 //https://stackoverflow.com/questions/40086575/chart-js-draw-mathematical-function
-var chart = new Chart(ctx, cfg); // finally, create instance of the chart
+chart = new Chart(ctx, cfg_function); // finally, create instance of the chart
 
-// some utility stuff
-function clearArray(arr) {arr.splice(0, arr.length)}
+select_graphic_select.onchange = function(event) {
+    let gensection = document.getElementById("visualize_control_generation_section")
+    switch (select_graphic_select.value) {
+    case "Generation":
+        if (gensection) gensection.hidden = false
+        chart.destroy()
+        chart = new Chart(ctx, cfg_maxminavg);
+        break;
+    case "Function":
+        if (gensection) gensection.hidden = true
+        chart.destroy()
+        chart = new Chart(ctx, cfg_function);
+        break;
+    default:
+        return;
+    }
+}
 
 //sync input handlers
 function bindInputs(elm1, elm2) {
@@ -190,18 +254,72 @@ var input_N = document.getElementById("population_size_number")
 var input_L = document.getElementById("genome_size_number")
 var input_pc = document.getElementById("crossingover_probability_number")
 var input_pm = document.getElementById("mutation_probability_number")
+var input_generation_from = document.getElementById("generation_from_number")
+var input_generation_to = document.getElementById("generation_to_number")
 var range_N = document.getElementById("population_size_range")
 var range_L = document.getElementById("genome_size_range")
 var range_pc = document.getElementById("crossingover_probability_range")
 var range_pm = document.getElementById("mutation_probability_range")
+var range_generation_from = document.getElementById("generation_from_range")
+var range_generation_to = document.getElementById("generation_to_range")
 bindInputs(input_N, range_N);
 bindInputs(input_L, range_L);
 bindInputs(input_pc, range_pc);
 bindInputs(input_pm, range_pm);
+bindInputs(input_generation_from, range_generation_from);
+bindInputs(input_generation_to, range_generation_to);
+input_generation_from.onchange = e=>lab1_data_callback()
+input_generation_to.onchange = e=>lab1_data_callback()
+range_generation_from.onchange = e=>lab1_data_callback()
+range_generation_to.onchange = e=>lab1_data_callback()
+
+function setMaxGenerationValue(val) {
+    input_generation_from.setAttribute('max', val)
+    input_generation_to.setAttribute('max', val)
+    range_generation_from.setAttribute('max', val)
+    range_generation_to.setAttribute('max', val)
+}
+
+function setFromGenerationValue(val) {
+    input_generation_from.value = val
+    range_generation_from.value = val
+}
+function setToGenerationValue(val) {
+    input_generation_to.value = val
+    range_generation_to.value = val
+}
+function getFromGenerationValue() {
+    return Number(input_generation_from.value)
+}
+function getToGenerationValue() {
+    return Number(input_generation_to.value)
+}
 
 var step = 1
+var old_idx_from = -1
+var old_idx_to = -1
+var last_data_callback
+// can be called with no parameters to imitate last call
 function lab1_data_callback(data_array, generation) {
+    var needToUpdate = false
+    if (data_array)
+        last_data_callback = {
+            data_array: data_array,
+            generation: generation
+        }
+    else
+    {
+        if (!last_data_callback) return
+        needToUpdate = true
+        data_array = last_data_callback.data_array
+        generation = last_data_callback.generation
+    }
     let last_entry = data_array[data_array.length - 1]
+    let last_gen_display = getToGenerationValue()
+    setMaxGenerationValue(String(data_array.length - 1))
+    if (last_entry.step - last_gen_display == 1) {
+        setToGenerationValue(last_entry.step)
+    }
     //console.log("Generation #" + last_entry.step + ": [" + last_entry.min + "|" + last_entry.avg +"|" + last_entry.max + "]")
 
     // gets the quantity order to deal with and the step preferred
@@ -230,12 +348,18 @@ function lab1_data_callback(data_array, generation) {
         generation_labels.push("#" + entry.step)
     }
 
+    // getting indexes to fetch data
+    var i1 = getFromGenerationValue()
+    var i2 = getToGenerationValue()
+    let idx_from = Math.min(i1, i2)
+    let idx_to = Math.max(i1, i2)
     // dataset_idx -> data_array_idx
     // 0 -> 0, 1 -> step, 2 -> 2*step, ..., (dataset.length-1) -> (dataset.length-1)*step
-    let new_step = getPreferredStep(data_array.length)
-    if (step == new_step) {
-        if (datasetMinFitness.data.length*step < data_array.length) {
-            let last_entry = data_array[data_array.length - 1]
+    //let new_step = getPreferredStep(data_array.length)
+    let new_step = getPreferredStep(idx_to - idx_from)
+    if (step == new_step && old_idx_from == idx_from) {
+        if (datasetMinFitness.data.length*step <= idx_to - idx_from) {
+            let last_entry = data_array[idx_to]
             addEntry(last_entry)
         }
     } else {
@@ -245,10 +369,26 @@ function lab1_data_callback(data_array, generation) {
         clearArray(datasetAvgFitness.data)
         clearArray(datasetMaxFitness.data)
         clearArray(generation_labels)
-        for (let k = 0; k*step < data_array.length; k++) {
-            addEntry(data_array[k*step])
+        for (let k = idx_from; k < data_array.length; k+=step) {
+            addEntry(data_array[k])
         }
     }
+    old_idx_from = idx_from
+    old_idx_to = idx_to
+
+    // refreshing generation information
+    clearArray(datasetGeneration.data)
+    for (let k = 0; k < generation.length; k++) {
+        let entity = generation[k]
+        function_labels.push(entity.interpret())
+        datasetGeneration.data.push({
+            x: entity.interpret(),
+            y: entity.fitness()
+        })
+    }
+
+    // if needed, update chart
+    if (needToUpdate) chart.update()
 }
   
 function create_lab1() {
@@ -262,6 +402,7 @@ function create_lab1() {
     clearArray(datasetMinFitness.data)
     clearArray(datasetAvgFitness.data)
     clearArray(datasetMaxFitness.data)
+    clearArray(datasetGeneration.data)
     clearArray(generation_labels)
     chart.update()
 
@@ -291,7 +432,7 @@ function run_lab1() {
 
 var button_prev_value = btn_continuous_run.value;
 function run_continuously_lab1() {
-    for (let k = 0; k < 10*step; k++)
+    for (let k = 0; k < Math.min(10*step, 100); k++)
         if (!lab1.condition_satisfied()) {
             step_lab1()
         } else {
@@ -303,11 +444,15 @@ function run_continuously_lab1() {
 function run_continuously_wrap() {
     if (running) {
         running = false
+        btn_run.disabled = false
+        btn_step.disabled = false
         btn_continuous_run.value = button_prev_value
     } else {
         running = true
         range_L.disabled = true
         input_L.disabled = true
+        btn_run.disabled = true
+        btn_step.disabled = true
         btn_continuous_run.value = "Пауза"
         run_continuously_lab1()
     }
@@ -316,11 +461,19 @@ function reset_lab1() {
     running = false
     range_L.disabled = false
     input_L.disabled = false
+    btn_run.disabled = false
+    btn_step.disabled = false
+    btn_continuous_run.value = button_prev_value
+    setMaxGenerationValue(0)
+    setFromGenerationValue(0)
+    setToGenerationValue(0)
+
     lab1.reset()
     lab1.prepare()
     clearArray(datasetMinFitness.data)
     clearArray(datasetAvgFitness.data)
     clearArray(datasetMaxFitness.data)
+    clearArray(datasetGeneration.data)
     clearArray(generation_labels)
     chart.update()
 }

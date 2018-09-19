@@ -38,6 +38,13 @@ function GeneticAlgorithm(operators, condition, init_generation = []) {
     }
 }
 
+
+var var13 = function(x) {
+    return Math.tanh(-x)*Math.cos(x)
+}
+// variant function
+var fitness_function = var13
+
 /*
  * defining all desired operators and constants within class definition
  * a -- begining of the interval
@@ -56,10 +63,6 @@ function Lab1(a, b, L, N, pc, pm) {
     // x = -5 .. 5
     if (a > b)
         throw "Parameter a should be less than b"
-
-    var var13 = function(x) {
-        return Math.tanh(-x)*Math.cos(x)
-    }
 
     this.generation = null
     this.data = []
@@ -100,7 +103,7 @@ function Lab1(a, b, L, N, pc, pm) {
 
         // calculates fitness function based on the interpretation
         this.fitness = function() {
-            return var13(this.interpret())
+            return fitness_function(this.interpret())
         }
     }
 
@@ -180,23 +183,25 @@ function Lab1(a, b, L, N, pc, pm) {
     }
 
     // reduce the generation
-    function reduction(generation, step) {
-        // make copy of generation
-        var next = generation.slice()
-        // sort entities by criteria
-        var next = next.sort((a, b) => {
-            let val_a = a.fitness()// - a.age
-            let val_b = b.fitness()// - b.age
-            return val_b - val_a // this is on maximum
-            //return val_a - val_b // this is on minimum
-        })
-        // save only the half of array (THANOS)
-        var next = next.slice(0, N)
-        // increase the age for everybody alive
-        next.forEach(v=>v.age++)
-        // save generation for the informational purpose
-        this.generation = next
-        return next
+    function reduction(context) {
+        return function(generation, step) {
+            // make copy of generation
+            var next = generation.slice()
+            // sort entities by criteria
+            var next = next.sort((a, b) => {
+                let val_a = a.fitness()// - a.age
+                let val_b = b.fitness()// - b.age
+                return val_b - val_a // this is on maximum
+                //return val_a - val_b // this is on minimum
+            })
+            // save only the half of array (THANOS)
+            var next = next.slice(0, N)
+            // increase the age for everybody alive
+            next.forEach(v=>v.age++)
+            // save generation for the informational purpose
+            context.generation = next
+            return next
+        }
     }
 
     // data collection operator
@@ -240,7 +245,7 @@ function Lab1(a, b, L, N, pc, pm) {
     }
 
     this.prepare = function () {
-        let operators = [reproduction, mutation, collect_data(this), reduction] // operator sequence
+        let operators = [reproduction, mutation, reduction(this), collect_data(this)] // operator sequence
         let init_generation = random_generation() // initial generation
         this.ga = new GeneticAlgorithm(operators, end_condition, init_generation) // prepare to launch genetic algorithm
     }
