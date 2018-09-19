@@ -1,0 +1,38 @@
+body {
+    padding: 0;
+    margin: 0;
+} 
+
+input.number_input {
+    width: 60px
+}
+
+.nobr  { white-space:nowrap; }
+
+canvas {
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+}
+
+.control_panel {
+    position: absolute;
+    background-color: #f1f1f1;
+    border: 1px solid #d3d3d3;
+    z-index: 9;
+}
+
+.control_panel_header {
+    padding: 1px;
+    cursor: move;
+    z-index: 10;
+    background-color: #2196F3;
+    color: #fff;
+    text-align: center;
+}
+
+#myChart {
+    width: 100%;
+    height: fit-content;
+}
