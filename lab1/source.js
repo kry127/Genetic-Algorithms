@@ -15,7 +15,6 @@
 function GeneticAlgorithm(operators, condition, init_generation = []) {
     this.generation_number = 0
     this.generation = init_generation
-    this.condition = condition
 
     /*
      * The function "step" makes one cycle in operator applying,
@@ -34,7 +33,7 @@ function GeneticAlgorithm(operators, condition, init_generation = []) {
     this.run = function() {
         do {
             this.step()
-        } while (!this.condition(this.generation, this.generation_number))
+        } while (!condition(this.generation, this.generation_number))
     }
 }
 
@@ -269,6 +268,7 @@ function Lab1(a, b, L, N, pc, pm) {
         
 }
 
+// tests here
 /*var lab1 = new Lab1(-5, 5, 16, 30, 0.5, 0.001) // create problem instance
 lab1.calculate() // begin calculations
 var last_gen = lab1.ga.generation // last generation
@@ -278,4 +278,4 @@ var max = Math.max(...fitness)
 var min = Math.min(...fitness)
 var avg = fitness.reduceRight((prev,val)=>prev+val)/fitness.length*/
 
-var kek = 0;
+var nop = 0; // for breakpoint in Visual Studio Code

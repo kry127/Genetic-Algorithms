@@ -369,7 +369,7 @@ function lab1_data_callback(data_array, generation) {
         clearArray(datasetAvgFitness.data)
         clearArray(datasetMaxFitness.data)
         clearArray(generation_labels)
-        for (let k = idx_from; k < data_array.length; k+=step) {
+        for (let k = idx_from; k < idx_to; k+=step) {
             addEntry(data_array[k])
         }
     }
