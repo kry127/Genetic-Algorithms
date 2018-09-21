@@ -72,7 +72,7 @@ for (let k = 0; k < control_panels.length; k++)
 
 // chart drawing part
 // some utility stuff
-function clearArray(arr) {arr.splice(0, arr.length)}
+function clearArray(arr) {arr.splice(0, arr.length)} // arr.length = 0
 function addToArray(dst, src) {
     for (let k = 0; k < src.length; k++)
         dst.push(src[k])
