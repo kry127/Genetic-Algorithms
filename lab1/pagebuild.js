@@ -119,9 +119,15 @@ datasetAvgFitness.label = 'Fitness avg'
 
 // fitness max dataset
 var datasetMaxFitness = clone(datasetProto)
-datasetMaxFitness.backgroundColor = chartColors.red
+datasetMaxFitness.backgroundColor = chartColors.orange
 datasetMaxFitness.borderColor = chartColors.red
 datasetMaxFitness.label = 'Fitness max'
+
+// solution error dataset
+var datasetErrFitness = clone(datasetProto)
+datasetErrFitness.backgroundColor = chartColors.red
+datasetErrFitness.borderColor = chartColors.red
+datasetErrFitness.label = 'Solution error'
 
 // original function dataset
 var datasetFunction = clone(datasetProto)
@@ -150,7 +156,7 @@ var cfg_maxminavg = {
     type: 'line',
     data: {
         labels: generation_labels,
-        datasets: [datasetMinFitness, datasetMaxFitness, datasetAvgFitness]
+        datasets: [datasetMinFitness, datasetAvgFitness, datasetMaxFitness, datasetErrFitness]
     },
     options: {
         responsive: true,
@@ -345,6 +351,10 @@ function lab1_data_callback(data_array, generation) {
             t: entry.step,
             y: entry.max
         })
+        datasetErrFitness.data.push({
+            t: entry.step,
+            y: entry.err
+        })
         generation_labels.push("#" + entry.step)
     }
 
@@ -368,6 +378,7 @@ function lab1_data_callback(data_array, generation) {
         clearArray(datasetMinFitness.data)
         clearArray(datasetAvgFitness.data)
         clearArray(datasetMaxFitness.data)
+        clearArray(datasetErrFitness.data)
         clearArray(generation_labels)
         for (let k = idx_from; k < idx_to; k+=step) {
             addEntry(data_array[k])
@@ -402,6 +413,7 @@ function create_lab1() {
     clearArray(datasetMinFitness.data)
     clearArray(datasetAvgFitness.data)
     clearArray(datasetMaxFitness.data)
+    clearArray(datasetErrFitness.data)
     clearArray(datasetGeneration.data)
     clearArray(generation_labels)
     chart.update()
@@ -473,6 +485,7 @@ function reset_lab1() {
     clearArray(datasetMinFitness.data)
     clearArray(datasetAvgFitness.data)
     clearArray(datasetMaxFitness.data)
+    clearArray(datasetErrFitness.data)
     clearArray(datasetGeneration.data)
     clearArray(generation_labels)
     chart.update()

@@ -43,6 +43,9 @@ var var13 = function(x) {
 }
 // variant function
 var fitness_function = var13
+// expected exact result
+let f_exact = 0.99629946411735915225
+let x_exact = 3.1489531593538435571
 
 /*
  * defining all desired operators and constants within class definition
@@ -51,17 +54,19 @@ var fitness_function = var13
  * L -- genome size
  * pc -- crossingover probability
  * mc -- mutation probability
+ * M -- maximum number of population
+ * epsilon -- precision of finding solution
  */
-function Lab1(a, b, L, N, pc, pm) {
+function Lab1(a, b, L, N, pc, pm, M = 5000, epsilon = 0.0001) {
     this.setL = function(val) {L = val; random_generation();}
     this.setN = function(val) {N = val}
     this.setPC = function(val) {pc = val}
     this.setPM = function(val) {pm = val}
-    // taking variant 13
-    // (Exp(-x)-exp(x))cos(x)/(exp(x)+exp(-x))
-    // x = -5 .. 5
+    this.setEpsilon = function(val) {epsilon = val}
     if (a > b)
         throw "Parameter a should be less than b"
+    // if epsilon is undefined, we can use connection of genome size and
+    // probable error estimation
 
     this.generation = null
     this.data = []
@@ -207,12 +212,14 @@ function Lab1(a, b, L, N, pc, pm) {
     function collect_data(lab1) {
         // weird :D
         return function (generation, step) {
+            generation = generation.sort((e1, e2) => e2.fitness() - e1.fitness())
             let fitness = generation.map(ent=>ent.fitness())
             let max = Math.max(...fitness)
             let min = Math.min(...fitness)
             let avg = fitness.reduceRight((prev,val)=>prev+val)/fitness.length
             let new_data = {
                 step: step,
+                err: Math.abs(x_exact-generation[0].interpret()),
                 max: max,
                 min: min,
                 avg: avg
@@ -240,7 +247,9 @@ function Lab1(a, b, L, N, pc, pm) {
     }
 
     function end_condition(generation, step) {
-        return step >= 5000
+        // sort descending
+        generation = generation.sort((e1, e2) => e2.fitness() - e1.fitness())
+        return Math.abs(x_exact-generation[0].interpret()) < epsilon || step >= M
     }
 
     this.prepare = function () {
@@ -277,5 +286,31 @@ var fitness = last_gen.map(ent=>ent.fitness())
 var max = Math.max(...fitness)
 var min = Math.min(...fitness)
 var avg = fitness.reduceRight((prev,val)=>prev+val)/fitness.length*/
+
+L = 22
+N = 20
+pc = 0.0
+pm = 0.002
+M = 5000
+eps = 0.0001
+var result = []
+while (pc <= 1.0) {
+    var err_arr = []
+    for (k = 0; k < 20; k++) {
+        var lab1 = new Lab1(-5, 5, L, N, pc, pm, M, eps)
+        lab1.run() // begin calculations
+        var generation = lab1.ga.generation // last generation
+        // get the best one
+        generation = generation.sort((e1, e2) => e2.fitness() - e1.fitness())
+        // save his error
+        err_arr.push(Math.abs(x_exact-generation[0].interpret()))
+    }
+    var avg_err = err_arr.reduceRight((prev,val)=>prev+val)/err_arr.length
+    result.push({pc: pc, avg_err: avg_err})
+    pc += 0.1
+}
+
+for (k = 0; k < result.length; k++)
+    console.log(k + "|" + result[k].pc + "|" + result[k].avg_err)
 
 var nop = 0; // for breakpoint in Visual Studio Code
