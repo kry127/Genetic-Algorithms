@@ -42,8 +42,8 @@ function GeneticAlgorithm(operators, condition, init_generation = []) {
 // 0 <= x2 <= 15
 var var13 = function(x) {
     var x1 = x[0], x2 = x[1];
-    var a=1, b=5.1/(4*Math.PI^2), c=5/Math.PI, d=6, e=10, f=1/(8*Math.PI);
-    return a*(x2-b*x1*x1+c*x1-d)^2+e*(1-f)*Math.cos(x1)+e;
+    var a=1, b=5.1/(4*Math.pow(Math.PI, 2)), c=5/Math.PI, d=6, e=10, f=1/(8*Math.PI);
+    return -(a*Math.pow(x2-b*x1*x1+c*x1-d, 2)+e*(1-f)*Math.cos(x1)+e);
 }
 // variant function
 var fitness_function = var13
@@ -97,6 +97,9 @@ function Lab2(a, b, N, pc, pm, L = 2, M = 5000, epsilon = 0.0001) {
                 let c2 = entity2.genome[k]
                 let h1 = 0.5*((1-beta)*c1 + (1+beta)*c2);
                 let h2 = 0.5*((1+beta)*c1 + (1-beta)*c2);
+                // keep that in bounds
+                h1 = (h1 < a[k]) ? a[k] : (h1 > b[k]) ? b[k] : h1
+                h2 = (h2 < a[k]) ? a[k] : (h2 > b[k]) ? b[k] : h2
                 [entity1.genome[k], entity2.genome[k]] = [h1, h2]
             }
             return [entity1, entity2]
@@ -104,8 +107,7 @@ function Lab2(a, b, N, pc, pm, L = 2, M = 5000, epsilon = 0.0001) {
         // function takes genome position to mutate that position (inversion)
         // no new entities generated during this process
         this.mutation = function(point) {
-            throw "Not implemented yet"
-            this.genome[point] = 1 - this.genome[point]
+            this.genome[point] = Math.random()*(b[point] - a[point]) + a[point]
         }
         
         // interpretation is genome itself

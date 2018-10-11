@@ -180,7 +180,6 @@ var cfg_maxminavg = {
         },
         animation: {
             onComplete: function(animation) {
-                console.log("Animation complete!")
                 if (running)
                     setTimeout(run_continuously_lab2, 0)
             }
@@ -215,7 +214,6 @@ var cfg_function = {
         },
         animation: {
             onComplete: function(animation) {
-                console.log("Animation complete!")
                 if (running)
                     setTimeout(run_continuously_lab2, 0)
             }
@@ -257,19 +255,16 @@ function bindInputs(elm1, elm2) {
     elm2.oninput = cpy12
 }
 var input_N = document.getElementById("population_size_number")
-var input_L = document.getElementById("genome_size_number")
 var input_pc = document.getElementById("crossingover_probability_number")
 var input_pm = document.getElementById("mutation_probability_number")
 var input_generation_from = document.getElementById("generation_from_number")
 var input_generation_to = document.getElementById("generation_to_number")
 var range_N = document.getElementById("population_size_range")
-var range_L = document.getElementById("genome_size_range")
 var range_pc = document.getElementById("crossingover_probability_range")
 var range_pm = document.getElementById("mutation_probability_range")
 var range_generation_from = document.getElementById("generation_from_range")
 var range_generation_to = document.getElementById("generation_to_range")
 bindInputs(input_N, range_N);
-bindInputs(input_L, range_L);
 bindInputs(input_pc, range_pc);
 bindInputs(input_pm, range_pm);
 bindInputs(input_generation_from, range_generation_from);
@@ -305,8 +300,13 @@ var step = 1
 var old_idx_from = -1
 var old_idx_to = -1
 var last_data_callback
+var best_entity
 // can be called with no parameters to imitate last call
 function lab2_data_callback(data_array, generation) {
+    for (let k = 0; k < generation.length; k++) {
+        if (best_entity == null || best_entity.fitness() < generation[k].fitness())
+            best_entity = generation[k];
+    }
     var needToUpdate = false
     if (data_array)
         last_data_callback = {
@@ -403,11 +403,10 @@ function lab2_data_callback(data_array, generation) {
 }
   
 function create_lab2() {
-    let L = Number(input_L.value)
     let N = Number(input_N.value)
     let pc = Number(input_pc.value)
     let pm = Number(input_pm.value)
-    lab2 = new Lab2([-5, 0], [10, 15], L, N, pc, pm)
+    lab2 = new Lab2([-5, 0], [10, 15], N, pc, pm)
     lab2.register_data_update_callback(lab2_data_callback)
     lab2.prepare()
     clearArray(datasetMinFitness.data)
@@ -418,28 +417,23 @@ function create_lab2() {
     clearArray(generation_labels)
     chart.update()
 
-    input_L.onchange = ev=>lab2.setL(Number(input_L.value))
     input_N.onchange = ev=>lab2.setN(Number(input_N.value))
     input_pc.onchange = ev=>lab2.setPC(Number(input_pc.value))
     input_pm.onchange = ev=>lab2.setPM(Number(input_pm.value))
     range_N.onchange = ev=>lab2.setN(Number(range_N.value))
-    range_L.onchange = ev=>lab2.setL(Number(range_L.value))
     range_pc.onchange = ev=>lab2.setPC(Number(range_pc.value))
     range_pm.onchange = ev=>lab2.setPM(Number(range_pm.value))
 }
 create_lab2();
 
 function step_lab2() {
-    range_L.disabled = true
-    input_L.disabled = true
     lab2.step()
     chart.update()
 }
 function run_lab2() {
-    range_L.disabled = true
-    input_L.disabled = true
     lab2.run()
     chart.update()
+    alert(best_entity.genome)
 }
 
 var button_prev_value = btn_continuous_run.value;
@@ -450,6 +444,7 @@ function run_continuously_lab2() {
         } else {
             running = false
             btn_continuous_run.value = button_prev_value
+            alert(best_entity.genome)
             break
         }
 }
@@ -459,10 +454,9 @@ function run_continuously_wrap() {
         btn_run.disabled = false
         btn_step.disabled = false
         btn_continuous_run.value = button_prev_value
+        alert(best_entity.genome)
     } else {
         running = true
-        range_L.disabled = true
-        input_L.disabled = true
         btn_run.disabled = true
         btn_step.disabled = true
         btn_continuous_run.value = "Пауза"
@@ -471,8 +465,6 @@ function run_continuously_wrap() {
 }
 function reset_lab2() {
     running = false
-    range_L.disabled = false
-    input_L.disabled = false
     btn_run.disabled = false
     btn_step.disabled = false
     btn_continuous_run.value = button_prev_value

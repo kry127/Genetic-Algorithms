@@ -9,7 +9,7 @@
     <script src="source.js"></script> <!-- код с лабораторной работой -->
   </head>
   <body>
-    <p>Исследование функции варианта №13 <b>f(x) = tanh(-x) * cos(x)</b></p>
+    <p>Исследование функции варианта №13 <b>f(x) = a*Math.pow(x2-b*x1*x1+c*x1-d, 2)+e*(1-f)*Math.cos(x1)+e;</b></p>
 
     <div id="ga_params_control" class="control_panel">
       <div class="nobr control_panel_header">
@@ -26,11 +26,6 @@
               <td>Размер популяции</td>
               <td><input class="number_input" id="population_size_number" type="number" value="20" min="2" max="100" step="1" /></td>
               <td><input id="population_size_range" type="range" value="20" min="2" max="100" step="1" /></td>
-            </tr>
-            <tr>
-              <td>Размер генома</td>
-              <td><input class="number_input" id="genome_size_number" type="number" value="17" min="1" max="100" step="1" /></td>
-              <td><input id="genome_size_range" type="range" value="17" min="1" max="100" step="1" /></td>
             </tr>
             <tr>
               <td>Вероятность кроссинговера</td>
