@@ -37,27 +37,30 @@ function GeneticAlgorithm(operators, condition, init_generation = []) {
     }
 }
 
-
+// now this is two dimensional function
+// -5 <= x1 <= 10
+// 0 <= x2 <= 15
 var var13 = function(x) {
-    return Math.tanh(-x)*Math.cos(x)
+    var x1 = x[0], x2 = x[1];
+    var a=1, b=5.1/(4*Math.PI^2), c=5/Math.PI, d=6, e=10, f=1/(8*Math.PI);
+    return a*(x2-b*x1*x1+c*x1-d)^2+e*(1-f)*Math.cos(x1)+e;
 }
 // variant function
 var fitness_function = var13
 // expected exact result
-let f_exact = 0.99629946411735915225
-let x_exact = 3.1489531593538435571
+let f_exact = 0.397887
 
 /*
  * defining all desired operators and constants within class definition
  * a -- begining of the interval
  * b -- ending of the interval
- * L -- genome size
+ * L -- genome size (function dimension to optimise)
  * pc -- crossingover probability
  * mc -- mutation probability
  * M -- maximum number of population
  * epsilon -- precision of finding solution
  */
-function Lab1(a, b, L, N, pc, pm, M = 5000, epsilon = 0.0001) {
+function Lab2(a, b, N, pc, pm, L = 2, M = 5000, epsilon = 0.0001) {
     this.setL = function(val) {L = val; random_generation();}
     this.setN = function(val) {N = val}
     this.setPC = function(val) {pc = val}
@@ -73,36 +76,41 @@ function Lab1(a, b, L, N, pc, pm, M = 5000, epsilon = 0.0001) {
     this.data_update_callback = []
 
     // define entity of generation
-    // genome: boolean string, representing floating point number (fpn)
+    // genome: array of integers (for multidimensional optimisation)
     // age: number of generations that entity is alive
     function fpn_entity(genome, age = 0) {
         this.genome = genome
         this.age = age 
         // function takes the other entity to reproduce and two positions of genome
         // function returns array of two new entity generated as a crossingover result
-        this.crossingover = function(other, point1, point2) {
+        // applying SBX crossover
+        this.crossingover = function(other) {
+            var beta = Math.random()
+            var n = 3
+            beta = (beta < 0.5) ? 2*beta : 1/(2*(1 - beta))
+            beta = Math.pow(beta, 1/(n+1))
+            // crossover with beta parameter
             var entity1 = new fpn_entity(this.genome.slice())
             var entity2 = new fpn_entity(other.genome.slice())
-            for (let k = point1; k <= point2; k++)
-                [entity1.genome[k], entity2.genome[k]] = [entity2.genome[k], entity1.genome[k]]
+            for (let k = 0; k < L; k++) {
+                let c1 = entity1.genome[k]
+                let c2 = entity2.genome[k]
+                let h1 = 0.5*((1-beta)*c1 + (1+beta)*c2);
+                let h2 = 0.5*((1+beta)*c1 + (1-beta)*c2);
+                [entity1.genome[k], entity2.genome[k]] = [h1, h2]
+            }
             return [entity1, entity2]
         }
         // function takes genome position to mutate that position (inversion)
         // no new entities generated during this process
         this.mutation = function(point) {
+            throw "Not implemented yet"
             this.genome[point] = 1 - this.genome[point]
         }
         
-        // converts fpn entity to desired format
+        // interpretation is genome itself
         this.interpret = function() {
-            var tmp = 0;
-            var max = 1;
-            for (let k = 0; k < this.genome.length; k++) {
-                tmp *= 2
-                max *= 2
-                if (this.genome[k]) tmp += 1
-            }
-            return a + (b - a)*tmp/(max - 1)
+            return genome
         }
 
         // calculates fitness function based on the interpretation
@@ -119,7 +127,7 @@ function Lab1(a, b, L, N, pc, pm, M = 5000, epsilon = 0.0001) {
         for (let l = 0; l < N; l++) {
             var genome = []
             for (let k = 0; k < L; k++)
-                genome.push(Math.random() < 0.5 ? 1 : 0)
+                genome.push(Math.random()*(b[k]-a[k]) + a[k])
             init_generation.push(new fpn_entity(genome))
         }
         return init_generation
@@ -157,14 +165,7 @@ function Lab1(a, b, L, N, pc, pm, M = 5000, epsilon = 0.0001) {
             if (Math.random() < pc) { // reproduction probability happens
                 let i1 = repro_indices[k]; // get first index reproducee
                 let i2 = repro_indices[k + 1 < C ? k + 1 : 0]; // get second index reproducee
-                let L1 = next[i1].genome.length
-                let L2 = next[i2].genome.length
-                let L12 = Math.min(L1, L2)
-                var point1 = Math.floor(Math.random() * L12) // get first crossingover point
-                var point2 = Math.floor(Math.random() * L12) // get second crossingover point
-                if (point1 > point2)
-                    [point1, point2] = [point2, point1]
-                var born = next[i1].crossingover(next[i2], point1, point2) // crossingover
+                var born = next[i1].crossingover(next[i2]) // crossingover
                 next = next.concat(born) // add newborners to next generation
             }
         }
@@ -219,7 +220,7 @@ function Lab1(a, b, L, N, pc, pm, M = 5000, epsilon = 0.0001) {
             let avg = fitness.reduceRight((prev,val)=>prev+val)/fitness.length
             let new_data = {
                 step: step,
-                err: Math.abs(x_exact-generation[0].interpret()),
+                err: Math.abs(avg-f_exact),
                 max: max,
                 min: min,
                 avg: avg
@@ -249,7 +250,8 @@ function Lab1(a, b, L, N, pc, pm, M = 5000, epsilon = 0.0001) {
     function end_condition(generation, step) {
         // sort descending
         generation = generation.sort((e1, e2) => e2.fitness() - e1.fitness())
-        return Math.abs(x_exact-generation[0].interpret()) < epsilon || step >= M
+        let avg = generation.map(ent=>ent.fitness()).reduceRight((prev,val)=>prev+val)/generation.length
+        return Math.abs(avg-f_exact) < epsilon || step >= M
     }
 
     this.prepare = function () {
