@@ -7,6 +7,8 @@
     <title>Генетические алгоритмы. Лабораторная №1</title>
     <script src="../chartjs/chart.bundle.js"></script>
     <script src="source.js"></script> <!-- код с лабораторной работой -->
+    <!-- Plotly.js -->
+		<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   </head>
   <body>
     <p>Исследование функции варианта №13 <b>f(x) = a*Math.pow(x2-b*x1*x1+c*x1-d, 2)+e*(1-f)*Math.cos(x1)+e;</b></p>
@@ -64,11 +66,7 @@
             <p><b>Параметры визуализации</b></p>
         </div>
         <div class="control_panel_content">
-          <select id="visualize_control_select_graphic">
-            <option value="Function">График функции с особями</option>
-            <option value="Generation">График изменения параметров популяции</option>
-          </select>
-          <div id="visualize_control_generation_section" hidden class="nobr">
+          <div id="visualize_control_generation_section" class="nobr">
             Отобразить поколения <br />
             <table><tbody>
               <tr>
@@ -91,6 +89,7 @@
 
 
     <canvas id="myChart" width="400" height="135"></canvas> <!-- график помещается в Canvas -->
+    <div id="my2D" width="400" height="135"></div>
   </body>
 
   <script src="pagebuild.js"></script> <!-- код со скриптом построения страницы -->

@@ -92,6 +92,7 @@ chartColors = {
 };
 
 var ctx = document.getElementById("myChart");
+var my2D = document.getElementById("my2D");
 var generation_labels = [] // for generation # dependency
 var function_labels = [] // for function argument dependency
 // define basic parameters for datasets
@@ -186,60 +187,34 @@ var cfg_maxminavg = {
         }
     }
 };
-var cfg_function = {
-    type:'scatter',
-    data: {
-        labels: function_labels,
-        datasets: [datasetFunction, datasetGeneration]
-    },
-    options: {
-        responsive: true,
-        tooltips: {
-            mode: 'index',
-        },
-        hover: {
-            mode: 'index'
-        },
-        scales: {
-            xAxes: [{
-                display: true,
-                labelString: 'x',
-            }],
-            yAxes: [{
-                scaleLabel: {
-                    display: true,
-                    labelString: 'Fitness'
-                }
-            }]
-        },
-        animation: {
-            onComplete: function(animation) {
-                if (running)
-                    setTimeout(run_continuously_lab2, 0)
-            }
-        }
-    }
-};
 //https://stackoverflow.com/questions/40086575/chart-js-draw-mathematical-function
-chart = new Chart(ctx, cfg_function); // finally, create instance of the chart
-
-select_graphic_select.onchange = function(event) {
-    let gensection = document.getElementById("visualize_control_generation_section")
-    switch (select_graphic_select.value) {
-    case "Generation":
-        if (gensection) gensection.hidden = false
-        chart.destroy()
-        chart = new Chart(ctx, cfg_maxminavg);
-        break;
-    case "Function":
-        if (gensection) gensection.hidden = true
-        chart.destroy()
-        chart = new Chart(ctx, cfg_function);
-        break;
-    default:
-        return;
+chart = new Chart(ctx, cfg_maxminavg); // finally, create instance of the chart
+var z_data = []
+for (var x2 = 0; x2 <= 15; x2++) {
+    var z_row = []
+    for (var x1 = -5; x1 <= 10; x1++) {
+        z_row[x1+5] = var13([x1, x2])
     }
+    z_data.push(z_row)
 }
+var data_z1 = {z: z_data, showscale: true, opacity:0.9, type: 'surface'};
+
+var layout={ scene:{
+    aspectmode: "manual",
+    aspectratio: {
+        x: 1, y: 0.7, z: 1,
+    },
+    xaxis: {
+    title: "x+5",
+    nticks: 15,
+    range: [0, 15],
+    },
+    yaxis: {
+    nticks: 15,
+    range: [0, 15],
+    }},
+}
+Plotly.newPlot('my2D', [data_z1], layout);
 
 //sync input handlers
 function bindInputs(elm1, elm2) {

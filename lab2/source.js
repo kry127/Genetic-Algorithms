@@ -43,12 +43,12 @@ function GeneticAlgorithm(operators, condition, init_generation = []) {
 var var13 = function(x) {
     var x1 = x[0], x2 = x[1];
     var a=1, b=5.1/(4*Math.pow(Math.PI, 2)), c=5/Math.PI, d=6, e=10, f=1/(8*Math.PI);
-    return -(a*Math.pow(x2-b*x1*x1+c*x1-d, 2)+e*(1-f)*Math.cos(x1)+e);
+    return a*Math.pow(x2-b*x1*x1+c*x1-d, 2)+e*(1-f)*Math.cos(x1)+e;
 }
 // variant function
-var fitness_function = var13
+var fitness_function = function(x) {return -var13(x)}
 // expected exact result
-let f_exact = 0.397887
+let f_exact = -0.397887
 
 /*
  * defining all desired operators and constants within class definition
