@@ -94,3 +94,15 @@ function getLength(path_list) {
         return Math.sqrt((cityA.x - cityB.x)*(cityA.x - cityB.x) + (cityA.y - cityB.y)*(cityA.y - cityB.y))
     }).reduce((prev, curr)=>prev+curr);
 }
+
+// for export
+module.exports = function() { 
+    this.cities = cities
+    this.best_path = best_path
+    this.getCity = getCity
+    this.getLength = getLength
+    this.getLengthOL = getLengthOL
+    this.greedy_solution = greedy_solution
+    this.convert_path = convert_path
+    this.convert_path_inverse = convert_path_inverse
+}

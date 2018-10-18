@@ -92,7 +92,7 @@ chartColors = {
 };
 
 var ctx = document.getElementById("myChart");
-var my2D = document.getElementById("my2D");
+var container = document.getElementById("container");
 var generation_labels = [] // for generation # dependency
 var function_labels = [] // for function argument dependency
 // define basic parameters for datasets
@@ -130,29 +130,6 @@ datasetErrFitness.backgroundColor = chartColors.red
 datasetErrFitness.borderColor = chartColors.red
 datasetErrFitness.label = 'Solution error'
 
-// original function dataset
-var datasetFunction = clone(datasetProto)
-datasetFunction.label = "f(x)"
-datasetFunction.lineTension = 0.4 // Bezier tension
-datasetFunction.backgroundColor = chartColors.blue
-datasetFunction.borderColor = chartColors.blue
-datasetFunction.pointRadius = 0.1,
-datasetFunction.pointHoverRadius = 0.1
-for (let x = -5; x <=5; x += 0.02) {
-    datasetFunction.data.push({
-        x: x,
-        y: fitness_function(x)
-    })
-}
-
-// scattered generation dataset
-//https://stackoverflow.com/questions/42841925/mixed-chart-scatter-plot-with-chart-js
-var datasetGeneration = clone(datasetProto)
-datasetGeneration.type = "bubble"
-datasetGeneration.label = "generation"
-datasetGeneration.backgroundColor = chartColors.none
-datasetGeneration.borderColor = chartColors.red
-
 var cfg_maxminavg = {
     type: 'line',
     data: {
@@ -189,32 +166,6 @@ var cfg_maxminavg = {
 };
 //https://stackoverflow.com/questions/40086575/chart-js-draw-mathematical-function
 chart = new Chart(ctx, cfg_maxminavg); // finally, create instance of the chart
-var z_data = []
-for (var x2 = 0; x2 <= 15; x2++) {
-    var z_row = []
-    for (var x1 = -5; x1 <= 10; x1++) {
-        z_row[x1+5] = var13([x1, x2])
-    }
-    z_data.push(z_row)
-}
-var data_z1 = {z: z_data, showscale: true, opacity:0.9, type: 'surface'};
-
-var layout={ scene:{
-    aspectmode: "manual",
-    aspectratio: {
-        x: 1, y: 0.7, z: 1,
-    },
-    xaxis: {
-    title: "x+5",
-    nticks: 15,
-    range: [0, 15],
-    },
-    yaxis: {
-    nticks: 15,
-    range: [0, 15],
-    }},
-}
-Plotly.newPlot('my2D', [data_z1], layout);
 
 //sync input handlers
 function bindInputs(elm1, elm2) {

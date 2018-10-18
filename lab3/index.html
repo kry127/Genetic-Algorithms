@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="style.css" />
     <title>Генетические алгоритмы. Лабораторная №1</title>
-    <script src="../chartjs/chart.bundle.js"></script>
+    <script src="../chartjs/chart.bundle.js"></script> <!-- Chart.js -->
+		<script src="../sigmajs/sigma.min.js"></script> <!-- Sigma.js -->
+    <script src="salesman.js"></script> <!-- код с лабораторной работой -->
     <script src="source.js"></script> <!-- код с лабораторной работой -->
-    <!-- Plotly.js -->
-		<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   </head>
   <body>
     <p>Исследование варианта №13 -- задача Коммивояжера</p>
@@ -89,7 +89,7 @@
 
 
     <canvas id="myChart" width="400" height="135"></canvas> <!-- график помещается в Canvas -->
-    <div id="my2D" width="400" height="135"></div>
+    <div id="container" width="400" height="400"></div>
   </body>
 
   <script src="pagebuild.js"></script> <!-- код со скриптом построения страницы -->
