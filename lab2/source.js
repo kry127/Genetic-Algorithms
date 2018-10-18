@@ -291,34 +291,51 @@ var max = Math.max(...fitness)
 var min = Math.min(...fitness)
 var avg = fitness.reduceRight((prev,val)=>prev+val)/fitness.length*/
 
-/*L = 22
-N = 30
+a = [-5, 0]
+b = [10, 15]
+L = 2
+N = 50
 pc = 1.0
 pm = 0.002
-M = 5000
+M = 20000
 eps = 0.01
+K = 50; // repeat count
 var result = []
-for (N = 200; N >= 150; N -= 50) {
+for (N = 125; N <= 250; N += 25) {
     for (pm = 0.0024; pm <= 0.0024; pm += 0.0004) {
         var err_arr = []
         var step_arr = []
-        for (k = 0; k < 30; k++) {
-            var lab1 = new Lab1(-5, 5, L, N, pc, pm, M, eps)
-            lab1.run() // begin calculations
-            var generation = lab1.ga.generation // last generation
+        for (k = 0; k < K; k++) {
+            //Lab2(a, b, N, pc, pm, L = 2, M = 5000, epsilon = 0.0001)
+            var lab = new Lab2(a, b, N, pc, pm, L, M, eps)
+            lab.run() // begin calculations
+            var generation = lab.ga.generation // last generation
             // get the best one
             generation = generation.sort((e1, e2) => e2.fitness() - e1.fitness())
             // save his error
-            err_arr.push(Math.abs(x_exact-generation[0].interpret()))
-            step_arr.push(lab1.ga.generation_number)
+            err_arr.push(Math.abs(f_exact-generation[0].fitness()))
+            step_arr.push(lab.ga.generation_number)
         }
+        var max_err = Math.max(...err_arr)
+        var min_err = Math.min(...err_arr)
         var avg_err = err_arr.reduceRight((prev,val)=>prev+val)/err_arr.length
+        var max_step = Math.max(...step_arr)
+        var min_step = Math.min(...step_arr)
         var avg_step = step_arr.reduceRight((prev,val)=>prev+val)/step_arr.length
-        result.push({N: N, pm: pm, avg_err: avg_err, avg_step: avg_step})
+        result.push({
+            N: N,
+            pm: pm,
+            max_err: max_err,
+            min_err: min_err,
+            avg_err: avg_err,
+            max_step: max_step,
+            min_step: min_step,
+            avg_step: avg_step
+        })
     }
 }
 
 for (k = 0; k < result.length; k++)
     console.log(result[k].N + "|" + result[k].pm + "|" + result[k].avg_err + "|" + result[k].avg_step)
-*/
+
 var nop = 0; // for breakpoint in Visual Studio Code
