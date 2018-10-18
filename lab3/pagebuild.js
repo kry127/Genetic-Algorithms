@@ -159,7 +159,7 @@ var cfg_maxminavg = {
         animation: {
             onComplete: function(animation) {
                 if (running)
-                    setTimeout(run_continuously_lab2, 0)
+                    setTimeout(run_continuously_lab3, 0)
             }
         }
     }
@@ -195,10 +195,10 @@ bindInputs(input_pc, range_pc);
 bindInputs(input_pm, range_pm);
 bindInputs(input_generation_from, range_generation_from);
 bindInputs(input_generation_to, range_generation_to);
-input_generation_from.onchange = e=>lab2_data_callback()
-input_generation_to.onchange = e=>lab2_data_callback()
-range_generation_from.onchange = e=>lab2_data_callback()
-range_generation_to.onchange = e=>lab2_data_callback()
+input_generation_from.onchange = e=>lab3_data_callback()
+input_generation_to.onchange = e=>lab3_data_callback()
+range_generation_from.onchange = e=>lab3_data_callback()
+range_generation_to.onchange = e=>lab3_data_callback()
 
 function setMaxGenerationValue(val) {
     input_generation_from.setAttribute('max', val)
@@ -228,7 +228,7 @@ var old_idx_to = -1
 var last_data_callback
 var best_entity
 // can be called with no parameters to imitate last call
-function lab2_data_callback(data_array, generation) {
+function lab3_data_callback(data_array, generation) {
     for (let k = 0; k < generation.length; k++) {
         if (best_entity == null || best_entity.fitness() < generation[k].fitness())
             best_entity = generation[k];
@@ -313,60 +313,48 @@ function lab2_data_callback(data_array, generation) {
     old_idx_from = idx_from
     old_idx_to = idx_to
 
-    // refreshing generation information
-    clearArray(datasetGeneration.data)
-    for (let k = 0; k < generation.length; k++) {
-        let entity = generation[k]
-        function_labels.push(entity.interpret())
-        datasetGeneration.data.push({
-            x: entity.interpret(),
-            y: entity.fitness()
-        })
-    }
-
     // if needed, update chart
     if (needToUpdate) chart.update()
 }
   
-function create_lab2() {
+function create_lab3() {
     let N = Number(input_N.value)
     let pc = Number(input_pc.value)
     let pm = Number(input_pm.value)
-    lab2 = new Lab2([-5, 0], [10, 15], N, pc, pm)
-    lab2.register_data_update_callback(lab2_data_callback)
-    lab2.prepare()
+    lab3 = new Lab3(N, pc, pm)
+    lab3.register_data_update_callback(lab3_data_callback)
+    lab3.prepare()
     clearArray(datasetMinFitness.data)
     clearArray(datasetAvgFitness.data)
     clearArray(datasetMaxFitness.data)
     clearArray(datasetErrFitness.data)
-    clearArray(datasetGeneration.data)
     clearArray(generation_labels)
     chart.update()
 
-    input_N.onchange = ev=>lab2.setN(Number(input_N.value))
-    input_pc.onchange = ev=>lab2.setPC(Number(input_pc.value))
-    input_pm.onchange = ev=>lab2.setPM(Number(input_pm.value))
-    range_N.onchange = ev=>lab2.setN(Number(range_N.value))
-    range_pc.onchange = ev=>lab2.setPC(Number(range_pc.value))
-    range_pm.onchange = ev=>lab2.setPM(Number(range_pm.value))
+    input_N.onchange = ev=>lab3.setN(Number(input_N.value))
+    input_pc.onchange = ev=>lab3.setPC(Number(input_pc.value))
+    input_pm.onchange = ev=>lab3.setPM(Number(input_pm.value))
+    range_N.onchange = ev=>lab3.setN(Number(range_N.value))
+    range_pc.onchange = ev=>lab3.setPC(Number(range_pc.value))
+    range_pm.onchange = ev=>lab3.setPM(Number(range_pm.value))
 }
-create_lab2();
+create_lab3();
 
-function step_lab2() {
-    lab2.step()
+function step_lab3() {
+    lab3.step()
     chart.update()
 }
-function run_lab2() {
-    lab2.run()
+function run_lab3() {
+    lab3.run()
     chart.update()
     alert(best_entity.genome)
 }
 
 var button_prev_value = btn_continuous_run.value;
-function run_continuously_lab2() {
+function run_continuously_lab3() {
     for (let k = 0; k < Math.min(10*step, 100); k++)
-        if (!lab2.condition_satisfied()) {
-            step_lab2()
+        if (!lab3.condition_satisfied()) {
+            step_lab3()
         } else {
             running = false
             btn_continuous_run.value = button_prev_value
@@ -386,10 +374,10 @@ function run_continuously_wrap() {
         btn_run.disabled = true
         btn_step.disabled = true
         btn_continuous_run.value = "Пауза"
-        run_continuously_lab2()
+        run_continuously_lab3()
     }
 }
-function reset_lab2() {
+function reset_lab3() {
     running = false
     btn_run.disabled = false
     btn_step.disabled = false
@@ -398,19 +386,18 @@ function reset_lab2() {
     setFromGenerationValue(0)
     setToGenerationValue(0)
 
-    lab2.reset()
-    lab2.prepare()
+    lab3.reset()
+    lab3.prepare()
     clearArray(datasetMinFitness.data)
     clearArray(datasetAvgFitness.data)
     clearArray(datasetMaxFitness.data)
     clearArray(datasetErrFitness.data)
-    clearArray(datasetGeneration.data)
     clearArray(generation_labels)
     chart.update()
 }
 
-create_lab2();
-btn_step.onclick = step_lab2;
-btn_run.onclick = run_lab2;
+create_lab3();
+btn_step.onclick = step_lab3;
+btn_run.onclick = run_lab3;
 btn_continuous_run.onclick = run_continuously_wrap;
-btn_reset.onclick = reset_lab2;
+btn_reset.onclick = reset_lab3;

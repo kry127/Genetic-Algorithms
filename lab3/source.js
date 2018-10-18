@@ -1,5 +1,5 @@
 // temporary for debug
-require('./salesman.js')();
+//require('./salesman.js')();
 
 /* Generic genetic algorithm
  *  Constructor parameters description:
@@ -47,7 +47,7 @@ function GeneticAlgorithm(operators, condition, init_generation = []) {
 
 // function calculates summary distance from Pruufer code
 // variant function
-var fitness_function = function(x) {return -getLengthOL(x)}
+var fitness_function = function(x) {return -getLength(x)}
 // expected exact result
 let f_exact = -9074.14804787284
 
@@ -100,7 +100,7 @@ function Lab3(N, pc, pm, L = cities.length, M = 20000, epsilon = 0.001) {
         
         // interpretation is genome itself
         this.interpret = function() {
-            return genome
+            return convert_path_inverse(genome)
         }
 
         // calculates fitness function based on the interpretation
@@ -285,7 +285,7 @@ var max = Math.max(...fitness)
 var min = Math.min(...fitness)
 var avg = fitness.reduceRight((prev,val)=>prev+val)/fitness.length*/
 
-N = 50
+/*N = 50
 pc = 1.0
 pm = 0.002
 M = 20000
@@ -327,5 +327,5 @@ for (N = 1000; N <= 1000; N += 25) {
 
 for (k = 0; k < result.length; k++)
     console.log(result[k].N + "|" + result[k].pm + "|" + result[k].avg_err + "|" + result[k].avg_step)
-
+*/
 var nop = 0; // for breakpoint in Visual Studio Code

@@ -96,7 +96,7 @@ function getLength(path_list) {
 }
 
 // for export
-module.exports = function() { 
+/*module.exports = function() { 
     this.cities = cities
     this.best_path = best_path
     this.getCity = getCity
@@ -105,4 +105,4 @@ module.exports = function() {
     this.greedy_solution = greedy_solution
     this.convert_path = convert_path
     this.convert_path_inverse = convert_path_inverse
-}
+}*/
