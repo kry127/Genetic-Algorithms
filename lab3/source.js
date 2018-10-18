@@ -90,13 +90,26 @@ function Lab3(N, pc, pm, L = cities.length, M = 20000, epsilon = 0.001) {
         // no new entities generated during this process
         this.mutation = function() {
             // no mutation happens now
-            // bad mutation
+            // bad mutation (v.1)
             /*var idx = Math.floor(Math.random() * (genome.length-1))
             [genome[idx], genome[idx+1]] = [genome[idx+1], genome[idx]]
             if (genome[idx+1]>1 && Math.random() < 0.5) {
                 genome[idx]++;
                 genome[idx+1]--;
             }*/
+            path = this.interpret()
+            // select two randomes to exchange
+            var i1 = Math.floor(Math.random() * path.length) // from
+            var i2 = Math.floor(Math.random() * path.length) // to
+            // inverse pathing between them
+            var new_path = Array.from(path)
+            if (i1 < i2)
+                for (let u = i1; u <= i2; u++)
+                    new_path[u] = path[(i1+i2-u)%path.length]
+            else
+                for (let u = i1; u <= i2 + path.length; u++)
+                    new_path[u%path.length] = path[(i1+i2 + path.length-u)%path.length]
+            genome = convert_path(new_path)
         }
         
         // interpretation is genome itself
