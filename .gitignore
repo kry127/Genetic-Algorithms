@@ -1,4 +1,5 @@
 /chartjs/*
+/sigmajs/*
 /p5/*
 *.code-workspace
 *.txt

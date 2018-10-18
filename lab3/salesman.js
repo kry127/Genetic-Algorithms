@@ -32,6 +32,8 @@ cities = [
     {id:29, x:360.0,  y:1980.0},
 ]
 
+best_path = [1,28,6,12,9,26,3,29,5,21,2,20,10,4,15,18,14,17,22,11,19,25,7,23,8,27,16,13,24,]
+
 function getCity(id) {
     return cities.find(city=>city.id==id);
 }
@@ -58,11 +60,11 @@ function convert_path_inverse(order_list) {
 function id (path) {return convert_path_inverse(convert_path(path));}
 
 // making greedy algorithm solution (O(n))
-function greedy_solution(initial_city) {
+function greedy_solution(initial_city_id) {
     // initialization
     var id_list = cities.map(v=>v.id)
-    id_list.splice(id_list.indexOf(initial_city), 1)
-    var result_list = [initial_city]
+    id_list.splice(id_list.indexOf(initial_city_id), 1)
+    var result_list = [initial_city_id]
 
     while(id_list.length > 0) {
         let city_id = result_list[result_list.length - 1]
@@ -81,6 +83,14 @@ function greedy_solution(initial_city) {
     return result_list
 }
 
-var solution = greedy_solution(1);
-
-var nop = null;
+function getLengthOL(order_list) {
+    return getLength(convert_path_inverse(order_list))
+}
+function getLength(path_list) {
+    return path_list.map((v, index, array)=>{
+        let cityA = getCity(v)
+        let cityB_metaid = (index+1)%array.length
+        let cityB = getCity(array[cityB_metaid])
+        return Math.sqrt((cityA.x - cityB.x)*(cityA.x - cityB.x) + (cityA.y - cityB.y)*(cityA.y - cityB.y))
+    }).reduce((prev, curr)=>prev+curr);
+}
