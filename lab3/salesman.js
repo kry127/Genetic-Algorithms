@@ -32,6 +32,10 @@ cities = [
     {id:29, x:360.0,  y:1980.0},
 ]
 
+function getCity(id) {
+    return cities.find(city=>city.id==id);
+}
+
 function convert_path(path_list) {
     var N = path_list.length
     // https://www.jstips.co/en/javascript/create-range-0...n-easily-using-one-line/
@@ -60,9 +64,23 @@ function greedy_solution(initial_city) {
     id_list.splice(id_list.indexOf(initial_city), 1)
     var result_list = [initial_city]
 
-    function findNext(city) {
-        
+    while(id_list.length > 0) {
+        let city_id = result_list[result_list.length - 1]
+        let city = getCity(city_id)
+        let sort_r2 = id_list.map(v=>getCity(v))
+            .map(v=>{
+                return {
+                    id:v.id,
+                    r2:(v.x-city.x)*(v.x-city.x) + (v.y-city.y)*(v.y-city.y)
+                }
+            }).sort((a, b)=>{return a.r2-b.r2});
+        let next_id = sort_r2[0].id
+        id_list.splice(id_list.indexOf(next_id), 1)
+        result_list.push(next_id)
     }
+    return result_list
 }
+
+var solution = greedy_solution(1);
 
 var nop = null;
