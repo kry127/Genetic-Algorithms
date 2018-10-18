@@ -53,5 +53,16 @@ function convert_path_inverse(order_list) {
 // function for check identity
 function id (path) {return convert_path_inverse(convert_path(path));}
 
+// making greedy algorithm solution (O(n))
+function greedy_solution(initial_city) {
+    // initialization
+    var id_list = cities.map(v=>v.id)
+    id_list.splice(id_list.indexOf(initial_city), 1)
+    var result_list = [initial_city]
+
+    function findNext(city) {
+        
+    }
+}
 
 var nop = null;
