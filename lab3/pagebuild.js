@@ -91,6 +91,64 @@ chartColors = {
 	none: 'transparent'
 };
 
+
+
+//sync input handlers
+function bindInputs(elm1, elm2) {
+    var cpy21 = function(event) {
+        elm2.value = elm1.value
+    }
+    var cpy12 = function(event) {
+        elm1.value = elm2.value
+    }
+    //elm1.onchange = cpy21
+    //elm2.onchange = cpy12
+    elm1.oninput = cpy21
+    elm2.oninput = cpy12
+}
+var input_N = document.getElementById("population_size_number")
+var input_pc = document.getElementById("crossingover_probability_number")
+var input_pm = document.getElementById("mutation_probability_number")
+var input_generation_from = document.getElementById("generation_from_number")
+var input_generation_to = document.getElementById("generation_to_number")
+var range_N = document.getElementById("population_size_range")
+var range_pc = document.getElementById("crossingover_probability_range")
+var range_pm = document.getElementById("mutation_probability_range")
+var range_generation_from = document.getElementById("generation_from_range")
+var range_generation_to = document.getElementById("generation_to_range")
+bindInputs(input_N, range_N);
+bindInputs(input_pc, range_pc);
+bindInputs(input_pm, range_pm);
+bindInputs(input_generation_from, range_generation_from);
+bindInputs(input_generation_to, range_generation_to);
+input_generation_from.onchange = e=>lab3_data_callback()
+input_generation_to.onchange = e=>lab3_data_callback()
+range_generation_from.onchange = e=>lab3_data_callback()
+range_generation_to.onchange = e=>lab3_data_callback()
+
+function setMaxGenerationValue(val) {
+    input_generation_from.setAttribute('max', val)
+    input_generation_to.setAttribute('max', val)
+    range_generation_from.setAttribute('max', val)
+    range_generation_to.setAttribute('max', val)
+}
+
+function setFromGenerationValue(val) {
+    input_generation_from.value = val
+    range_generation_from.value = val
+}
+function setToGenerationValue(val) {
+    input_generation_to.value = val
+    range_generation_to.value = val
+}
+function getFromGenerationValue() {
+    return Number(input_generation_from.value)
+}
+function getToGenerationValue() {
+    return Number(input_generation_to.value)
+}
+
+
 var ctx = document.getElementById("myChart");
 var container = document.getElementById("container");
 var generation_labels = [] // for generation # dependency
@@ -167,66 +225,52 @@ var cfg_maxminavg = {
 //https://stackoverflow.com/questions/40086575/chart-js-draw-mathematical-function
 chart = new Chart(ctx, cfg_maxminavg); // finally, create instance of the chart
 
-//sync input handlers
-function bindInputs(elm1, elm2) {
-    var cpy21 = function(event) {
-        elm2.value = elm1.value
-    }
-    var cpy12 = function(event) {
-        elm1.value = elm2.value
-    }
-    //elm1.onchange = cpy21
-    //elm2.onchange = cpy12
-    elm1.oninput = cpy21
-    elm2.oninput = cpy12
-}
-var input_N = document.getElementById("population_size_number")
-var input_pc = document.getElementById("crossingover_probability_number")
-var input_pm = document.getElementById("mutation_probability_number")
-var input_generation_from = document.getElementById("generation_from_number")
-var input_generation_to = document.getElementById("generation_to_number")
-var range_N = document.getElementById("population_size_range")
-var range_pc = document.getElementById("crossingover_probability_range")
-var range_pm = document.getElementById("mutation_probability_range")
-var range_generation_from = document.getElementById("generation_from_range")
-var range_generation_to = document.getElementById("generation_to_range")
-bindInputs(input_N, range_N);
-bindInputs(input_pc, range_pc);
-bindInputs(input_pm, range_pm);
-bindInputs(input_generation_from, range_generation_from);
-bindInputs(input_generation_to, range_generation_to);
-input_generation_from.onchange = e=>lab3_data_callback()
-input_generation_to.onchange = e=>lab3_data_callback()
-range_generation_from.onchange = e=>lab3_data_callback()
-range_generation_to.onchange = e=>lab3_data_callback()
 
-function setMaxGenerationValue(val) {
-    input_generation_from.setAttribute('max', val)
-    input_generation_to.setAttribute('max', val)
-    range_generation_from.setAttribute('max', val)
-    range_generation_to.setAttribute('max', val)
-}
 
-function setFromGenerationValue(val) {
-    input_generation_from.value = val
-    range_generation_from.value = val
-}
-function setToGenerationValue(val) {
-    input_generation_to.value = val
-    range_generation_to.value = val
-}
-function getFromGenerationValue() {
-    return Number(input_generation_from.value)
-}
-function getToGenerationValue() {
-    return Number(input_generation_to.value)
-}
-
+// sigmajs got closer to callbacks
 var step = 1
 var old_idx_from = -1
 var old_idx_to = -1
 var last_data_callback
 var best_entity
+// sigma.js part
+///https://github.com/jacomyal/sigma.js/wiki
+
+var s = new sigma(container);
+s.settings({
+    edgeColor: 'default',
+    defaultEdgeColor: '#999',
+    defaultNodeColor: '#0f0'
+  });
+cities.map(city=>{
+    return {
+        id: city.id,
+        x: city.x,
+        y: city.y,
+        size:0.2,
+        label: String(city.id),
+        color: '#00f'
+    }
+}).map(city=>s.graph.addNode(city));
+drawBests();
+
+function drawPath(path, edge_prefix, color) {
+    for (let k = 0; k < path.length; k++) {
+        s.graph.addEdge({
+            id: edge_prefix + k,
+            source: path[k],
+            target: path[(k + 1) % path.length],
+            color: color
+        })
+    }
+}
+function drawBests() {
+    s.graph.edges().map(v=>s.graph.dropEdge(v.id)); // not optimal
+    drawPath(best_path, 'best', '#966');
+    if(best_entity) drawPath(best_entity.interpret(), 'best_gen', "#00f3")
+    s.refresh();
+}
+
 // can be called with no parameters to imitate last call
 function lab3_data_callback(data_array, generation) {
     for (let k = 0; k < generation.length; k++) {
@@ -343,11 +387,12 @@ create_lab3();
 function step_lab3() {
     lab3.step()
     chart.update()
+    drawBests()
 }
 function run_lab3() {
     lab3.run()
     chart.update()
-    alert(best_entity.genome)
+    drawBests()
 }
 
 var button_prev_value = btn_continuous_run.value;
@@ -358,7 +403,7 @@ function run_continuously_lab3() {
         } else {
             running = false
             btn_continuous_run.value = button_prev_value
-            alert(best_entity.genome)
+            drawBests()
             break
         }
 }
@@ -368,7 +413,7 @@ function run_continuously_wrap() {
         btn_run.disabled = false
         btn_step.disabled = false
         btn_continuous_run.value = button_prev_value
-        alert(best_entity.genome)
+        drawBests()
     } else {
         running = true
         btn_run.disabled = true

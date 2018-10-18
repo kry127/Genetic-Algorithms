@@ -32,7 +32,8 @@ canvas {
     text-align: center;
 }
 
-#myChart {
+#container {
+    position: absolute;
     width: 100%;
-    height: fit-content;
-}
+    height: 100%;
+  }

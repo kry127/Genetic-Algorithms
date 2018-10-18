@@ -90,12 +90,13 @@ function Lab3(N, pc, pm, L = cities.length, M = 20000, epsilon = 0.001) {
         // no new entities generated during this process
         this.mutation = function() {
             // no mutation happens now
-            var idx = Math.floor(Math.random() * (genome.length-1))
+            // bad mutation
+            /*var idx = Math.floor(Math.random() * (genome.length-1))
             [genome[idx], genome[idx+1]] = [genome[idx+1], genome[idx]]
             if (genome[idx+1]>1 && Math.random() < 0.5) {
                 genome[idx]++;
                 genome[idx+1]--;
-            }
+            }*/
         }
         
         // interpretation is genome itself
