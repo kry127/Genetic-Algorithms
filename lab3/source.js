@@ -109,7 +109,11 @@ function Lab3(N, pc, pm, L = cities.length, M = 20000, epsilon = 0.001) {
             else
                 for (let u = i1; u <= i2 + path.length; u++)
                     new_path[u%path.length] = path[(i1+i2 + path.length-u)%path.length]
+            var old_genome = genome
+            var old_fitness = this.fitness()
             genome = convert_path(new_path)
+            if (this.fitness() < old_fitness)
+                genome = old_genome
         }
         
         // interpretation is genome itself
@@ -177,6 +181,8 @@ function Lab3(N, pc, pm, L = cities.length, M = 20000, epsilon = 0.001) {
                     [point1, point2] = [point2, point1]
                 var born = next[i1].crossingover(next[i2], point1, point2) // crossingover
                 next = next.concat(born) // add newborners to next generation
+                //next.push(new fpn_entity(next[i1].genome))
+                //next.push(new fpn_entity(next[i2].genome))
             }
         }
         // return result
@@ -265,7 +271,7 @@ function Lab3(N, pc, pm, L = cities.length, M = 20000, epsilon = 0.001) {
     }
 
     this.prepare = function () {
-        let operators = [reproduction, mutation, reduction(this), collect_data(this)] // operator sequence
+        let operators = [mutation, reproduction, reduction(this), collect_data(this)] // operator sequence
         let init_generation = random_generation() // initial generation
         this.ga = new GeneticAlgorithm(operators, end_condition, init_generation) // prepare to launch genetic algorithm
     }
