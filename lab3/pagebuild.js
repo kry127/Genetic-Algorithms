@@ -1,5 +1,4 @@
 // some parameters and variables to maintain process
-// commit test
 var running = false; // identifies whenever genetic algorithm is running or not
 var btn_step = document.getElementById("btn_step")
 var brn_run = document.getElementById("btn_run")
