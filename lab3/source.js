@@ -226,7 +226,7 @@ function Lab3(N, pc, pm, L = cities.length, M = 20000, epsilon = 0.001) {
     }
 
     // data collection operator
-    function collect_data(lab1) {
+    function collect_data(lab) {
         // weird :D
         return function (generation, step) {
             generation = generation.sort((e1, e2) => e2.fitness() - e1.fitness())
@@ -241,9 +241,9 @@ function Lab3(N, pc, pm, L = cities.length, M = 20000, epsilon = 0.001) {
                 min: min,
                 avg: avg
             }
-            lab1.data.push(new_data)
-            for (let k = 0; k < lab1.data_update_callback.length; k++) {
-                lab1.data_update_callback[k](lab1.data, lab1.generation)
+            lab.data.push(new_data)
+            for (let k = 0; k < lab.data_update_callback.length; k++) {
+                lab.data_update_callback[k](lab.data, lab.generation)
             }
             return generation
         }
