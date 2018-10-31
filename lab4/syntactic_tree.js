@@ -100,11 +100,11 @@ Array.prototype.random = function() {
 // grows tree randomly, returns root
 function growTree(height, variable_count, full=true) {
     if (height < 1) throw new error("Unexpected parameter of height")
-    if (height == 1) {
-        return node_leaf_list.random()
-    }
-    var root_constructor = full ? node_list.random() : node_leaf_list.random()
+    var root_constructor = height == 1 ? leaf_list.random()
+                                : full ? node_list.random()
+                                :        node_leaf_list.random()
     var root = new root_constructor()
+    root.height = height // remember height just in case
     if (leaf_list.indexOf(root_constructor) != -1) {
         if (root instanceof variable)
             root.var_index = Math.floor(Math.random()*variable_count)
@@ -123,21 +123,3 @@ function growTree(height, variable_count, full=true) {
 }
 tree = growTree(4, 2)
 
-// tree example
-nodex = new variable(0)
-nodey = new variable(1)
-node1 = new add()
-node2 = new sub()
-node1.lhs = nodex
-node1.rhs = nodey
-node2.lhs = nodex
-node2.rhs = nodey
-node3 = new mul()
-node3.lhs = node1
-node3.rhs = node2
-node4 = new pow()
-node4.lhs = node3
-node4.rhs = new constant(3)
-
-var res = node4.eval([2, 1])
-var nop = null
