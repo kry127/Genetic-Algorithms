@@ -121,10 +121,10 @@ bindInputs(input_pc, range_pc);
 bindInputs(input_pm, range_pm);
 bindInputs(input_generation_from, range_generation_from);
 bindInputs(input_generation_to, range_generation_to);
-input_generation_from.onchange = e=>lab3_data_callback()
-input_generation_to.onchange = e=>lab3_data_callback()
-range_generation_from.onchange = e=>lab3_data_callback()
-range_generation_to.onchange = e=>lab3_data_callback()
+input_generation_from.onchange = e=>lab_data_callback()
+input_generation_to.onchange = e=>lab_data_callback()
+range_generation_from.onchange = e=>lab_data_callback()
+range_generation_to.onchange = e=>lab_data_callback()
 
 function setMaxGenerationValue(val) {
     input_generation_from.setAttribute('max', val)
@@ -150,7 +150,7 @@ function getToGenerationValue() {
 
 
 var ctx = document.getElementById("myChart");
-var container = document.getElementById("container");
+var my2D = document.getElementById("my2D");
 var generation_labels = [] // for generation # dependency
 var function_labels = [] // for function argument dependency
 // define basic parameters for datasets
@@ -217,7 +217,7 @@ var cfg_maxminavg = {
         animation: {
             onComplete: function(animation) {
                 if (running)
-                    setTimeout(run_continuously_lab3, 0)
+                    setTimeout(run_continuously_lab, 0)
             }
         }
     }
@@ -227,52 +227,62 @@ chart = new Chart(ctx, cfg_maxminavg); // finally, create instance of the chart
 
 
 
-// sigmajs got closer to callbacks
+// plotly got closer to callbacks
 var step = 1
 var old_idx_from = -1
 var old_idx_to = -1
 var last_data_callback
-var best_entity
-// sigma.js part
-///https://github.com/jacomyal/sigma.js/wiki
-
-var s = new sigma(container);
-s.settings({
-    edgeColor: 'default',
-    defaultEdgeColor: '#999',
-    defaultNodeColor: '#0f0'
-  });
-cities.map(city=>{
-    return {
-        id: city.id,
-        x: city.x,
-        y: city.y,
-        size:0.2,
-        label: String(city.id),
-        color: '#00f'
+var best_entity = null
+// plotly.js part
+var z_data = []
+var tmp_bounds = full_bounds
+for (var x2 = tmp_bounds.from[1]; x2 <= tmp_bounds.to[1]; x2++) {
+    var z_row = []
+    for (var x1 = tmp_bounds.from[0]; x1 <= tmp_bounds.to[0]; x1++) {
+        z_row.push(fEaso([x1, x2]))
     }
-}).map(city=>s.graph.addNode(city));
-drawBests();
-
-function drawPath(path, edge_prefix, color) {
-    for (let k = 0; k < path.length; k++) {
-        s.graph.addEdge({
-            id: edge_prefix + k,
-            source: path[k],
-            target: path[(k + 1) % path.length],
-            color: color
-        })
-    }
+    z_data.push(z_row)
 }
+var data_z1 = {z: z_data, showscale: true, opacity:0.9, type: 'surface'};
+
+var layout={ scene:{
+    aspectmode: "manual",
+    aspectratio: {
+        x: 1, y: 0.7, z: 1,
+    },
+    xaxis: {
+    title: "x-("+String(-tmp_bounds.from[0])+")",
+    nticks: tmp_bounds.to[0] - tmp_bounds.from[0],
+    range: [0, tmp_bounds.to[0] - tmp_bounds.from[0]],
+    },
+    yaxis: {
+    title: "y-("+String(-tmp_bounds.from[1])+")",
+    nticks: tmp_bounds.to[1] - tmp_bounds.from[1],
+    range: [0, tmp_bounds.to[1] - tmp_bounds.from[1]],
+    }},
+}
+Plotly.newPlot('my2D', [data_z1], layout);
+
 function drawBests() {
-    s.graph.edges().map(v=>s.graph.dropEdge(v.id)); // not optimal
-    drawPath(best_path, 'best', '#966');
-    if(best_entity) drawPath(best_entity.interpret(), 'best_gen', "#00f3")
-    s.refresh();
+    if (!best_entity) return
+    var z_data = []
+    for (var x2 = tmp_bounds.from[1]; x2 <= tmp_bounds.to[1]; x2++) {
+        var z_row = []
+        for (var x1 = tmp_bounds.from[0]; x1 <= tmp_bounds.to[0]; x1++) {
+            z_row.push(best_entity.genome.eval([x1, x2]))
+        }
+        z_data.push(z_row)
+    }
+    var data_z2 = {z: z_data, showscale: true, opacity:0.6, type: 'surface'};
+    Plotly.newPlot('my2D', [data_z1, data_z2], layout);
+}
+
+function drawReset() {
+    Plotly.newPlot('my2D', [data_z1], layout);
 }
 
 // can be called with no parameters to imitate last call
-function lab3_data_callback(data_array, generation) {
+function lab_data_callback(data_array, generation) {
     for (let k = 0; k < generation.length; k++) {
         if (best_entity == null || best_entity.fitness() < generation[k].fitness())
             best_entity = generation[k];
@@ -361,13 +371,16 @@ function lab3_data_callback(data_array, generation) {
     if (needToUpdate) chart.update()
 }
   
-function create_lab3() {
+function create_lab() {
     let N = Number(input_N.value)
+    let H = 10
     let pc = Number(input_pc.value)
     let pm = Number(input_pm.value)
-    lab3 = new Lab3(N, pc, pm)
-    lab3.register_data_update_callback(lab3_data_callback)
-    lab3.prepare()
+    let M = 1000
+    let epsilon = 0.01
+    lab = new Lab4(N, H, pc, pm, M, epsilon)
+    lab.register_data_update_callback(lab_data_callback)
+    lab.prepare()
     clearArray(datasetMinFitness.data)
     clearArray(datasetAvgFitness.data)
     clearArray(datasetMaxFitness.data)
@@ -375,31 +388,31 @@ function create_lab3() {
     clearArray(generation_labels)
     chart.update()
 
-    input_N.onchange = ev=>lab3.setN(Number(input_N.value))
-    input_pc.onchange = ev=>lab3.setPC(Number(input_pc.value))
-    input_pm.onchange = ev=>lab3.setPM(Number(input_pm.value))
-    range_N.onchange = ev=>lab3.setN(Number(range_N.value))
-    range_pc.onchange = ev=>lab3.setPC(Number(range_pc.value))
-    range_pm.onchange = ev=>lab3.setPM(Number(range_pm.value))
+    input_N.onchange = ev=>lab.setN(Number(input_N.value))
+    input_pc.onchange = ev=>lab.setPC(Number(input_pc.value))
+    input_pm.onchange = ev=>lab.setPM(Number(input_pm.value))
+    range_N.onchange = ev=>lab.setN(Number(range_N.value))
+    range_pc.onchange = ev=>lab.setPC(Number(range_pc.value))
+    range_pm.onchange = ev=>lab.setPM(Number(range_pm.value))
 }
-create_lab3();
+create_lab();
 
-function step_lab3() {
-    lab3.step()
+function step_lab() {
+    lab.step()
     chart.update()
     drawBests()
 }
-function run_lab3() {
-    lab3.run()
+function run_lab() {
+    lab.run()
     chart.update()
     drawBests()
 }
 
 var button_prev_value = btn_continuous_run.value;
-function run_continuously_lab3() {
+function run_continuously_lab() {
     for (let k = 0; k < Math.min(10*step, 100); k++)
-        if (!lab3.condition_satisfied()) {
-            step_lab3()
+        if (!lab.condition_satisfied()) {
+            step_lab()
         } else {
             running = false
             btn_continuous_run.value = button_prev_value
@@ -419,10 +432,10 @@ function run_continuously_wrap() {
         btn_run.disabled = true
         btn_step.disabled = true
         btn_continuous_run.value = "Пауза"
-        run_continuously_lab3()
+        run_continuously_lab()
     }
 }
-function reset_lab3() {
+function reset_lab() {
     running = false
     btn_run.disabled = false
     btn_step.disabled = false
@@ -431,18 +444,20 @@ function reset_lab3() {
     setFromGenerationValue(0)
     setToGenerationValue(0)
 
-    lab3.reset()
-    lab3.prepare()
+    lab.reset()
+    lab.prepare()
     clearArray(datasetMinFitness.data)
     clearArray(datasetAvgFitness.data)
     clearArray(datasetMaxFitness.data)
     clearArray(datasetErrFitness.data)
     clearArray(generation_labels)
     chart.update()
+
+    drawReset()
 }
 
-create_lab3();
-btn_step.onclick = step_lab3;
-btn_run.onclick = run_lab3;
+create_lab();
+btn_step.onclick = step_lab;
+btn_run.onclick = run_lab;
 btn_continuous_run.onclick = run_continuously_wrap;
-btn_reset.onclick = reset_lab3;
+btn_reset.onclick = reset_lab;

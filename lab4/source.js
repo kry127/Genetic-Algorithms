@@ -1,3 +1,7 @@
+// temporary for debug
+if (typeof require != "undefined")
+    require('./syntactic_tree.js')();
+
 /* Generic genetic algorithm
  *  Constructor parameters description:
  *  1. operators: array of function
@@ -42,21 +46,34 @@ function GeneticAlgorithm(operators, condition, init_generation = []) {
     }
 }
 
-// function calculates summary distance from Pruufer code
-// variant function
-var fitness_function = function(x) {return -getLength(x)}
-// expected exact result
-let f_exact = -9074.14804787284
+// analyzable function
+// [-100, -100] <= x <= [100, 100]
+fEaso = function(x) {return -Math.cos(x[0])*Math.cos(x[1])*
+                Math.exp(-(x[0] - Math.PI)*(x[0] - Math.PI) - (x[1] - Math.PI)*(x[1] - Math.PI))}
+// algorithm fitness function
+var net_fracture = 7
+var full_bounds = {
+    from:[-2, -2],
+    to:[8, 8]
+}
+var bounds = {
+    from:[0, 0],
+    to:[6, 6]
+}
+var fitness_function = makeFitnessFunction(fEaso, bounds, net_fracture)
+// assume f_exact is no error
+f_exact = 0
 
 /*
  * defining all desired operators and constants within class definition
- * L -- genome size (cities count)
+ * N -- population count
+ * H -- tree height
  * pc -- crossingover probability
  * mc -- mutation probability
  * M -- maximum number of population
  * epsilon -- precision of finding solution
  */
-function Lab3(N, pc, pm, L = cities.length, M = 20000, epsilon = 0.001) {
+function Lab4(N, H, pc, pm, M = 20000, epsilon = 0.001) {
     this.setN = function(val) {N = val}
     this.setPC = function(val) {pc = val}
     this.setPM = function(val) {pm = val}
@@ -74,65 +91,48 @@ function Lab3(N, pc, pm, L = cities.length, M = 20000, epsilon = 0.001) {
     function fpn_entity(genome, age = 0) {
         this.genome = genome
         this.age = age 
-        // function takes the other entity to reproduce and two positions of genome
+        this.invalid = true
+        // function takes the other entity to reproduce
         // function returns array of two new entity generated as a crossingover result
-        this.crossingover = function(other, point1, point2) {
-            var entity1 = new fpn_entity(this.genome.slice())
-            var entity2 = new fpn_entity(other.genome.slice())
-            for (let k = point1; k <= point2; k++)
-                [entity1.genome[k], entity2.genome[k]] = [entity2.genome[k], entity1.genome[k]]
+        this.crossingover = function(other) {     
+            
+            var entity1 = new fpn_entity(treeDeepcopy(this.genome))
+            var entity2 = new fpn_entity(treeDeepcopy(other.genome))
+            var crossed = treeCrossingover(entity1.genome, entity2.genome, 0.22)
+            if (!crossed) { // no actual crossingover happened
+                // make lazy computations
+                entity1.fitness_value = this.fitness_value
+                entity2.fitness_value = other.fitness_value
+                entity1.invalid = false
+                entity2.invalid = false
+            }
             return [entity1, entity2]
         }
-        // function takes genome position to mutate that position (inversion)
-        // no new entities generated during this process
+
         this.mutation = function() {
-            // no mutation happens now
-            // bad mutation (v.1)
-            /*var idx = Math.floor(Math.random() * (genome.length-1))
-            [genome[idx], genome[idx+1]] = [genome[idx+1], genome[idx]]
-            if (genome[idx+1]>1 && Math.random() < 0.5) {
-                genome[idx]++;
-                genome[idx+1]--;
-            }*/
-            path = this.interpret()
-            // select two randomes to exchange
-            var i1 = Math.floor(Math.random() * path.length) // from
-            var i2 = Math.floor(Math.random() * path.length) // to
-            // inverse pathing between them
-            var new_path = Array.from(path)
-            if (i1 < i2)
-                for (let u = i1; u <= i2; u++)
-                    new_path[u] = path[(i1+i2-u)%path.length]
-            else
-                for (let u = i1; u <= i2 + path.length; u++)
-                    new_path[u%path.length] = path[(i1+i2 + path.length-u)%path.length]
-            var old_genome = genome
-            var old_fitness = this.fitness()
-            genome = convert_path(new_path)
-            if (this.fitness() < old_fitness)
-                genome = old_genome
+            treeMutation(this.genome, 0.14, bounds.from.length, Math.random() < 0.5)
+            this.invalid = true
         }
         
         // interpretation is genome itself
         this.interpret = function() {
-            return convert_path_inverse(genome)
+            return genome
         }
 
         // calculates fitness function based on the interpretation
         this.fitness = function() {
-            return fitness_function(this.interpret())
+            if (this.invalid) // lazy computations
+                this.fitness_value = fitness_function(this.interpret())
+            this.invalid = false
+            return this.fitness_value
         }
     }
 
     // the function returns random generation
-    // N -- count of entities in generation
-    // L -- genome size
     function random_generation() {
         var init_generation = []
         for (let l = 0; l < N; l++) {
-            let rand = Math.floor(Math.random()*L)+1
-            var genome = convert_path(greedy_solution(rand))
-            init_generation.push(new fpn_entity(genome))
+            init_generation.push(new fpn_entity(growTree(H, bounds.from.length, true)))
         }
         return init_generation
     }
@@ -169,17 +169,8 @@ function Lab3(N, pc, pm, L = cities.length, M = 20000, epsilon = 0.001) {
             if (Math.random() < pc) { // reproduction probability happens
                 let i1 = repro_indices[k]; // get first index reproducee
                 let i2 = repro_indices[k + 1 < C ? k + 1 : 0]; // get second index reproducee
-                let L1 = next[i1].genome.length
-                let L2 = next[i2].genome.length
-                let L12 = Math.min(L1, L2)
-                var point1 = Math.floor(Math.random() * L12) // get first crossingover point
-                var point2 = Math.floor(Math.random() * L12) // get second crossingover point
-                if (point1 > point2)
-                    [point1, point2] = [point2, point1]
-                var born = next[i1].crossingover(next[i2], point1, point2) // crossingover
+                var born = next[i1].crossingover(next[i2]) // crossingover
                 next = next.concat(born) // add newborners to next generation
-                //next.push(new fpn_entity(next[i1].genome))
-                //next.push(new fpn_entity(next[i2].genome))
             }
         }
         // return result
@@ -292,20 +283,11 @@ function Lab3(N, pc, pm, L = cities.length, M = 20000, epsilon = 0.001) {
         
 }
 
-// tests here
-/*var lab1 = new Lab1(-5, 5, 16, 30, 0.5, 0.001) // create problem instance
-lab1.calculate() // begin calculations
-var last_gen = lab1.ga.generation // last generation
-
-var fitness = last_gen.map(ent=>ent.fitness())
-var max = Math.max(...fitness)
-var min = Math.min(...fitness)
-var avg = fitness.reduceRight((prev,val)=>prev+val)/fitness.length*/
-
 /*N = 50
+H = 11
 pc = 1.0
 pm = 0.002
-M = 20000
+M = 1000
 eps = 0.01
 K = 1; // repeat count
 var result = []
@@ -314,7 +296,7 @@ for (N = 1000; N <= 1000; N += 25) {
         var err_arr = []
         var step_arr = []
         for (k = 0; k < K; k++) {
-            var lab = new Lab3(N, pc, pm, L=cities.length, M, eps)
+            var lab = new Lab4(N, H, pc, pm, M, eps)
             lab.run() // begin calculations
             var generation = lab.ga.generation // last generation
             // get the best one
@@ -340,9 +322,5 @@ for (N = 1000; N <= 1000; N += 25) {
             avg_step: avg_step
         })
     }
-}
-
-for (k = 0; k < result.length; k++)
-    console.log(result[k].N + "|" + result[k].pm + "|" + result[k].avg_err + "|" + result[k].avg_step)
-*/
+}*/
 var nop = 0; // for breakpoint in Visual Studio Code
