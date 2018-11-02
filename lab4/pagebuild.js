@@ -272,6 +272,9 @@ var layout={ scene:{
 }
 Plotly.newPlot('my2D', [data_z1], layout);
 
+// the best!
+var best_result_genome_span = document.getElementById("best_result_genome_span")
+var best_result_fitness_span = document.getElementById("best_result_fitness_span")
 function drawBests() {
     if (!best_entity) return
     var z_data = []
@@ -285,6 +288,8 @@ function drawBests() {
     var data_z2 = {z: z_data, showscale: true, opacity:0.6, type: 'surface'};
     //Plotly.newPlot('my2D', [data_z1, data_z2], layout);
     Plotly.newPlot('my2D', {data:[data_z1, data_z2], layout: layout})
+    best_result_genome_span.innerHTML = treeToString(best_entity.genome)
+    best_result_fitness_span.innerHTML = best_entity.fitness()
 }
 
 function drawReset() {

@@ -277,6 +277,33 @@ function treeDeepcopy(tree) {
     return new_node
 }
 
+function treeToString(tree) {
+    if (tree instanceof constant) {
+        return String(tree.value)
+    } else if (tree instanceof variable) {
+        return "x"+String(tree.var_index+1)
+    } else if (tree instanceof add) {
+        return treeToString(tree.lhs) + "+" + treeToString(tree.rhs)
+    } else if (tree instanceof sub) {
+        return treeToString(tree.lhs) + "-" + treeToString(tree.rhs)
+    } else if (tree instanceof mul) {
+        return "("+treeToString(tree.lhs) + ")*(" + treeToString(tree.rhs)+")"
+    } else if (tree instanceof div) {
+        return "("+treeToString(tree.lhs) + ")/(" + treeToString(tree.rhs)+")"
+    } else if (tree instanceof pow) {
+        return "("+treeToString(tree.lhs) + ")^(" + treeToString(tree.rhs)+")"
+    } else if (tree instanceof abs) {
+        return "|"+treeToString(tree.arg) + "|"
+    } else if (tree instanceof sin) {
+        return "sin("+treeToString(tree.arg) + ")"
+    } else if (tree instanceof cos) {
+        return "cos("+treeToString(tree.arg) + ")"
+    } else if (tree instanceof exp) {
+        return "exp("+treeToString(tree.arg) + ")"
+    } else
+        throw new error("Not supported type of node")
+}
+
 // tree mutation check
 /*fEaso = function(x) {return -Math.cos(x[0])*Math.cos(x[1])*
     Math.exp(-(x[0] - Math.PI)*(x[0] - Math.PI) - (x[1] - Math.PI)*(x[1] - Math.PI))}
@@ -298,5 +325,6 @@ if (typeof module !== "undefined") {
         this.treeDeepcopy = treeDeepcopy
         this.treeCrossingover = treeCrossingover
         this.makeFitnessFunction = makeFitnessFunction
+        this.treeToString = treeToString
     }
 }
