@@ -107,18 +107,27 @@ function bindInputs(elm1, elm2) {
     elm2.oninput = cpy12
 }
 var input_N = document.getElementById("population_size_number")
+var input_H = document.getElementById("tree_height_number")
 var input_pc = document.getElementById("crossingover_probability_number")
 var input_pm = document.getElementById("mutation_probability_number")
+var input_M = document.getElementById("max_step_number")
+var input_epsilon = document.getElementById("epsilon_number")
 var input_generation_from = document.getElementById("generation_from_number")
 var input_generation_to = document.getElementById("generation_to_number")
 var range_N = document.getElementById("population_size_range")
+var range_H = document.getElementById("tree_height_range")
 var range_pc = document.getElementById("crossingover_probability_range")
 var range_pm = document.getElementById("mutation_probability_range")
+var range_M = document.getElementById("max_step_range")
+var range_epsilon = document.getElementById("epsilon_range")
 var range_generation_from = document.getElementById("generation_from_range")
 var range_generation_to = document.getElementById("generation_to_range")
 bindInputs(input_N, range_N);
+bindInputs(input_H, range_H);
 bindInputs(input_pc, range_pc);
 bindInputs(input_pm, range_pm);
+bindInputs(input_M, range_M);
+bindInputs(input_epsilon, range_epsilon);
 bindInputs(input_generation_from, range_generation_from);
 bindInputs(input_generation_to, range_generation_to);
 input_generation_from.onchange = e=>lab_data_callback()
@@ -252,12 +261,12 @@ var layout={ scene:{
     },
     xaxis: {
     title: "x-("+String(-tmp_bounds.from[0])+")",
-    nticks: tmp_bounds.to[0] - tmp_bounds.from[0],
+    nticks: 10,
     range: [0, tmp_bounds.to[0] - tmp_bounds.from[0]],
     },
     yaxis: {
     title: "y-("+String(-tmp_bounds.from[1])+")",
-    nticks: tmp_bounds.to[1] - tmp_bounds.from[1],
+    nticks: 10,
     range: [0, tmp_bounds.to[1] - tmp_bounds.from[1]],
     }},
 }
@@ -274,7 +283,8 @@ function drawBests() {
         z_data.push(z_row)
     }
     var data_z2 = {z: z_data, showscale: true, opacity:0.6, type: 'surface'};
-    Plotly.newPlot('my2D', [data_z1, data_z2], layout);
+    //Plotly.newPlot('my2D', [data_z1, data_z2], layout);
+    Plotly.newPlot('my2D', {data:[data_z1, data_z2], layout: layout})
 }
 
 function drawReset() {
@@ -373,11 +383,11 @@ function lab_data_callback(data_array, generation) {
   
 function create_lab() {
     let N = Number(input_N.value)
-    let H = 10
+    let H = Number(input_H.value)
     let pc = Number(input_pc.value)
     let pm = Number(input_pm.value)
-    let M = 1000
-    let epsilon = 0.01
+    let M = Number(input_M.value)
+    let epsilon = Number(input_epsilon.value)
     lab = new Lab4(N, H, pc, pm, M, epsilon)
     lab.register_data_update_callback(lab_data_callback)
     lab.prepare()
@@ -389,11 +399,17 @@ function create_lab() {
     chart.update()
 
     input_N.onchange = ev=>lab.setN(Number(input_N.value))
+    input_H.onchange = ev=>lab.setH(Number(input_H.value))
     input_pc.onchange = ev=>lab.setPC(Number(input_pc.value))
     input_pm.onchange = ev=>lab.setPM(Number(input_pm.value))
+    input_M.onchange = ev=>lab.setM(Number(input_M.value))
+    input_epsilon.onchange = ev=>lab.setEpsilon(Number(input_epsilon.value))
     range_N.onchange = ev=>lab.setN(Number(range_N.value))
+    range_H.onchange = ev=>lab.setH(Number(range_H.value))
     range_pc.onchange = ev=>lab.setPC(Number(range_pc.value))
     range_pm.onchange = ev=>lab.setPM(Number(range_pm.value))
+    range_M.onchange = ev=>lab.setM(Number(range_M.value))
+    range_epsilon.onchange = ev=>lab.setEpsilon(Number(range_epsilon.value))
 }
 create_lab();
 
@@ -414,8 +430,7 @@ function run_continuously_lab() {
         if (!lab.condition_satisfied()) {
             step_lab()
         } else {
-            running = false
-            btn_continuous_run.value = button_prev_value
+            run_continuously_wrap()
             drawBests()
             break
         }

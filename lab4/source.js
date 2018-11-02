@@ -51,7 +51,7 @@ function GeneticAlgorithm(operators, condition, init_generation = []) {
 fEaso = function(x) {return -Math.cos(x[0])*Math.cos(x[1])*
                 Math.exp(-(x[0] - Math.PI)*(x[0] - Math.PI) - (x[1] - Math.PI)*(x[1] - Math.PI))}
 // algorithm fitness function
-var net_fracture = 7
+var net_fracture = 5
 var full_bounds = {
     from:[-2, -2],
     to:[8, 8]
@@ -75,8 +75,10 @@ f_exact = 0
  */
 function Lab4(N, H, pc, pm, M = 20000, epsilon = 0.001) {
     this.setN = function(val) {N = val}
+    this.setH = function(val) {H = val}
     this.setPC = function(val) {pc = val}
     this.setPM = function(val) {pm = val}
+    this.setM = function(val) {M = val}
     this.setEpsilon = function(val) {epsilon = val}
     // if epsilon is undefined, we can use connection of genome size and
     // probable error estimation
@@ -252,10 +254,14 @@ function Lab4(N, H, pc, pm, M = 20000, epsilon = 0.001) {
     }
 
     function end_condition(generation, step) {
-        // sort descending
-        generation = generation.sort((e1, e2) => e2.fitness() - e1.fitness())
-        let avg = generation.map(ent=>ent.fitness()).reduceRight((prev,val)=>prev+val)/generation.length
-        return Math.abs(avg-f_exact) < epsilon || step >= M
+        try {
+            // sort descending
+            generation = generation.sort((e1, e2) => e2.fitness() - e1.fitness())
+            let avg = generation.map(ent=>ent.fitness()).reduceRight((prev,val)=>prev+val)/generation.length
+            return Math.abs(avg-f_exact) < epsilon || step >= M
+        } catch {
+            return false
+        }
     }
 
     this.prepare = function () {
