@@ -107,7 +107,7 @@ function Lab5(a, b, N, pc, pm, sigma = 1.2, L = 4, F = 100, M = 5000, epsilon = 
             let L12 = Math.min(L1, L2)
             var entity1 = new fpn_entity(this.genome.slice())
             var entity2 = new fpn_entity(other.genome.slice())
-            for (let k = 0; k <= L12; k++)
+            for (let k = 0; k < L12; k++)
                 if (Math.random() < 0.5) // swap with 50% chance
                     [entity1.genome[k], entity2.genome[k]] = [entity2.genome[k], entity1.genome[k]]
 
@@ -238,12 +238,12 @@ function Lab5(a, b, N, pc, pm, sigma = 1.2, L = 4, F = 100, M = 5000, epsilon = 
                 if (p > p_factor) {
                     for (let k = 0; k < next.length; k++) {
                         for (let l = L/2; l < L; l++)
-                            next[k].genome[l] /= sigma
+                            next[k].genome[l] *= sigma
                     }
                 } else if (p < p_factor) {
                     for (let k = 0; k < next.length; k++) {
                         for (let l = L/2; l < L; l++)
-                            next[k].genome[l] *= sigma
+                            next[k].genome[l] /= sigma
                     }
                 }
                 ctx.mutation_count = 0
