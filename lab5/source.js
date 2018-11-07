@@ -234,15 +234,16 @@ function Lab5(a, b, N, pc, pm, sigma = 1.2, L = 4, F = 100, M = 5000, epsilon = 
                 let p = 1.0*N/n
 
                 p_factor = 0.2
+                // swap happened to make local solution
                 if (p > p_factor) {
                     for (let k = 0; k < next.length; k++) {
                         for (let l = L/2; l < L; l++)
-                            next[k].genome[l] *= sigma
+                            next[k].genome[l] /= sigma
                     }
                 } else if (p < p_factor) {
                     for (let k = 0; k < next.length; k++) {
                         for (let l = L/2; l < L; l++)
-                            next[k].genome[l] /= sigma
+                            next[k].genome[l] *= sigma
                     }
                 }
                 ctx.mutation_count = 0

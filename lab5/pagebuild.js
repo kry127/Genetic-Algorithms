@@ -293,6 +293,7 @@ function drawBests() {
 function drawReset() {
     best_result_genome_span.innerHTML = ""
     best_result_fitness_span.innerHTML = ""
+    best_entity = null
 }
 
 // can be called with no parameters to imitate last call
@@ -402,7 +403,7 @@ function create_lab() {
     let pm = Number(input_pm.value)
     let M = Number(input_M.value)
     let epsilon = Number(input_epsilon.value)
-    lab = new Lab5([-5, 0], [10, 15], N, pc, pm, 1.2, 4, 100, M, epsilon)
+    lab = new Lab5([-5, 0], [10, 15], N, pc, pm, 1.1, 4, 100, M, epsilon)
     lab.register_data_update_callback(lab_data_callback)
     lab.prepare()
     clearArray(datasetMinFitness.data)
