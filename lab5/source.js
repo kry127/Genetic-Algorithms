@@ -50,21 +50,37 @@ var fitness_function = function(x) {return -var13(x)}
 // expected exact result
 let f_exact = -0.397887
 
+// normal distributed magnitude
+// https://stackoverflow.com/questions/25582882/javascript-math-random-normal-distribution-gaussian-bell-curve
+// Standard Normal variate using Box-Muller transform.
+function randn_bm() {
+    var u = 0, v = 0;
+    while(u === 0) u = Math.random(); //Converting [0,1) to (0,1)
+    while(v === 0) v = Math.random();
+    return Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+}
+Math.random_normal = randn_bm;
+
 /*
  * defining all desired operators and constants within class definition
  * a -- begining of the interval
  * b -- ending of the interval
- * L -- genome size (function dimension to optimise)
+ * L -- genome size (twice function dimension to optimise)
  * pc -- crossingover probability
- * mc -- mutation probability
+ * pm -- mutation probability
+ * sigma -- adaptation scale coefficient
+ * F -- fitness repeat
  * M -- maximum number of population
  * epsilon -- precision of finding solution
  */
-function Lab2(a, b, N, pc, pm, L = 2, M = 5000, epsilon = 0.0001) {
+function Lab5(a, b, N, pc, pm, sigma = 1.2, L = 4, F = 100, M = 5000, epsilon = 0.0001) {
     this.setL = function(val) {L = val; random_generation();}
     this.setN = function(val) {N = val}
     this.setPC = function(val) {pc = val}
     this.setPM = function(val) {pm = val}
+    this.setSigma = function(val) {sigma = val}
+    this.setF = function(val) {F = val}
+    this.setM = function(val) {M = val}
     this.setEpsilon = function(val) {epsilon = val}
     if (a > b)
         throw "Parameter a should be less than b"
@@ -74,6 +90,7 @@ function Lab2(a, b, N, pc, pm, L = 2, M = 5000, epsilon = 0.0001) {
     this.generation = null
     this.data = []
     this.data_update_callback = []
+    this.fitness_repeat = 0
 
     // define entity of generation
     // genome: array of integers (for multidimensional optimisation)
@@ -83,31 +100,38 @@ function Lab2(a, b, N, pc, pm, L = 2, M = 5000, epsilon = 0.0001) {
         this.age = age 
         // function takes the other entity to reproduce and two positions of genome
         // function returns array of two new entity generated as a crossingover result
-        // applying SBX crossover
+        // applying simple crossover
         this.crossingover = function(other) {
-            var beta = Math.random()
-            var n = 3
-            beta = (beta < 0.5) ? 2*beta : 1/(2*(1 - beta))
-            beta = Math.pow(beta, 1/(n+1))
-            // crossover with beta parameter
+            let L1 = this.genome.length
+            let L2 = other.genome.length
+            let L12 = Math.min(L1, L2)
             var entity1 = new fpn_entity(this.genome.slice())
             var entity2 = new fpn_entity(other.genome.slice())
-            for (let k = 0; k < L; k++) {
-                let c1 = entity1.genome[k]
-                let c2 = entity2.genome[k]
-                let h1 = 0.5*((1-beta)*c1 + (1+beta)*c2);
-                let h2 = 0.5*((1+beta)*c1 + (1-beta)*c2);
-                // keep that in bounds
-                h1 = (h1 < a[k]) ? a[k] : (h1 > b[k]) ? b[k] : h1
-                h2 = (h2 < a[k]) ? a[k] : (h2 > b[k]) ? b[k] : h2
-                [entity1.genome[k], entity2.genome[k]] = [h1, h2]
-            }
+            for (let k = 0; k <= L12; k++)
+                if (Math.random() < 0.5) // swap with 50% chance
+                    [entity1.genome[k], entity2.genome[k]] = [entity2.genome[k], entity1.genome[k]]
+
             return [entity1, entity2]
         }
-        // function takes genome position to mutate that position (inversion)
-        // no new entities generated during this process
-        this.mutation = function(point) {
-            this.genome[point] = Math.random()*(b[point] - a[point]) + a[point]
+        
+        // mutation should implement evolutional strategy
+        this.mutation = function() {
+            var old_genome = this.genome
+            var old_fitness = this.fitness()
+            // genome transform with Gaussian distribution
+            let DIM = L/2
+            for (let u = 0; u < DIM; u++) {
+                let v = u + DIM
+                this.genome[u] += Math.random_normal()*this.genome[v]
+                if (this.genome[u] < a[u]) this.genome[u] = a[u]
+                if (this.genome[u] > b[u]) this.genome[u] = b[u]
+            }
+            // evolutional (1 + 1) strategy
+            if (this.fitness() < old_fitness) {
+                this.genome = old_genome
+                return false
+            }
+            return true
         }
         
         // interpretation is genome itself
@@ -128,8 +152,11 @@ function Lab2(a, b, N, pc, pm, L = 2, M = 5000, epsilon = 0.0001) {
         var init_generation = []
         for (let l = 0; l < N; l++) {
             var genome = []
-            for (let k = 0; k < L; k++)
+            let DIM = L/2
+            for (let k = 0; k < DIM; k++)
                 genome.push(Math.random()*(b[k]-a[k]) + a[k])
+            for (let k = DIM; k < L; k++)
+                genome.push (Math.random())
             init_generation.push(new fpn_entity(genome))
         }
         return init_generation
@@ -176,17 +203,53 @@ function Lab2(a, b, N, pc, pm, L = 2, M = 5000, epsilon = 0.0001) {
     }
 
     // mutations
-    function mutation(generation, step) {
-        // make copy of generation
-        var next = generation.slice()
-        // instantly make mutations
-        for (var k = 0; k < next.length; k++) {
-            if (Math.random() < pm) { // mutation probability happens
-                next[k].mutation(Math.floor(Math.random() * next[k].genome.length))
+    this.mutation_count = 0
+    this.mutation_successful = 0
+    function mutation(ctx) {
+        return function (generation, step) {
+            // make copy of generation
+            var next = generation.slice()
+            // instantly make mutations
+            for (var k = 0; k < next.length; k++) {
+                if (Math.random() < pm) { // mutation probability happens
+                    ctx.mutation_count++
+                    var success = next[k].mutation(Math.floor(Math.random() * next[k].genome.length))
+                    if (success)
+                        ctx.mutation_successful++
+                }
             }
+            // return result
+            return next
         }
-        // return result
-        return next
+    }
+
+    // dispersion correction
+    function adaptation(ctx) {
+        return function (generation, step) {
+            // make copy of generation
+            var next = generation.slice()
+            if (step % (F/2) == 0) {
+                let N = ctx.mutation_count
+                let n = ctx.mutation_successful
+                let p = 1.0*N/n
+
+                p_factor = 0.2
+                if (p > p_factor) {
+                    for (let k = 0; k < next.length; k++) {
+                        for (let l = L/2; l < L; l++)
+                            next[k].genome[l] *= sigma
+                    }
+                } else if (p < p_factor) {
+                    for (let k = 0; k < next.length; k++) {
+                        for (let l = L/2; l < L; l++)
+                            next[k].genome[l] /= sigma
+                    }
+                }
+                ctx.mutation_count = 0
+                ctx.mutation_successful = 0
+            }
+            return next
+        }
     }
 
     // reduce the generation
@@ -250,14 +313,26 @@ function Lab2(a, b, N, pc, pm, L = 2, M = 5000, epsilon = 0.0001) {
     }
 
     function end_condition(generation, step) {
-        // sort descending
-        generation = generation.sort((e1, e2) => e2.fitness() - e1.fitness())
-        let avg = generation.map(ent=>ent.fitness()).reduceRight((prev,val)=>prev+val)/generation.length
-        return Math.abs(avg-f_exact) < epsilon || step >= M
+        try {
+            // sort descending
+            generation = generation.sort((e1, e2) => e2.fitness() - e1.fitness())
+            let max = Math.max(...generation.map(ent=>ent.fitness()))
+            if (this.generation_number == 0 && max > this.old_max) {
+                this.old_max = max
+                this.fitness_repeat = 1
+            } else {
+                this.fitness_repeat++
+            }
+            
+            return Math.abs(avg-f_exact) < epsilon || step >= M || fitness_repeat > F          
+        } catch (e) {
+            return false
+        }
+   
     }
 
     this.prepare = function () {
-        let operators = [reproduction, mutation, reduction(this), collect_data(this)] // operator sequence
+        let operators = [adaptation(this), reproduction, mutation(this), reduction(this), collect_data(this)] // operator sequence
         let init_generation = random_generation() // initial generation
         this.ga = new GeneticAlgorithm(operators, end_condition, init_generation) // prepare to launch genetic algorithm
     }
@@ -276,6 +351,7 @@ function Lab2(a, b, N, pc, pm, L = 2, M = 5000, epsilon = 0.0001) {
         delete this.generation
         delete this.data
         this.data = []
+        delete this.fitness_repeat
         delete this.ga
     }
         

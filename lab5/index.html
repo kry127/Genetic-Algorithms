@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <title>Генетические алгоритмы. Лабораторная №5</title>
+    <script src="../chartjs/chart.bundle.js"></script>
+    <script src="source.js"></script> <!-- код с лабораторной работой -->
+    <!-- Plotly.js -->
+		<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  </head>
+  <body>
+    <p>Исследование функции варианта №13 <b>f(x) = a*Math.pow(x2-b*x1*x1+c*x1-d, 2)+e*(1-f)*Math.cos(x1)+e;</b></p>
+
+    <div id="ga_params_control" class="control_panel">
+      <div class="nobr control_panel_header">
+        <p><b>Параметры генетического алгоритма</b></p>
+      </div>
+      <div class="control_panel_content">
+        <table border="0" cellspacing="1" class="nobr">
+          <tbody>
+            <tr>
+              <th>Название параметра</th>
+              <th colspan="2">Значение параметра</th>
+            </tr>
+            <tr>
+              <td>Размер популяции</td>
+              <td><input class="number_input" id="population_size_number" type="number" value="20" min="2" max="100" step="1" /></td>
+              <td><input id="population_size_range" type="range" value="20" min="2" max="100" step="1" /></td>
+            </tr>
+            <tr>
+              <td>Вероятность кроссинговера</td>
+              <td><input class="number_input" id="crossingover_probability_number" type="number" value="1" min="0" max="1" step="0.001" /></td>
+              <td><input id="crossingover_probability_range" type="range" value="1" min="0" max="1" step="0.001" /></td>
+            </tr>
+            <tr>
+              <td>Вероятность мутации</td>
+              <td><input class="number_input" id="mutation_probability_number" type="number" value="0.1" min="0" max="1" step="0.001" /></td>
+              <td><input id="mutation_probability_range" type="range" value="0.1" min="0" max="1" step="0.001" /></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="run_params_control" class="control_panel">
+      <div class="nobr control_panel_header">
+          <p><b>Параметры запуска</b></p>
+      </div>
+      <div class="control_panel_content">
+        <table border="0" cellspacing="1" class="nobr">
+            <tbody>
+                <tr>
+                  <th>Название параметра</th>
+                  <th colspan="2">Значение параметра</th>
+                </tr>
+                <tr>
+                  <td>Максимальное количество поколений</td>
+                  <td><input class="number_input" id="max_step_number" type="number" value="5000" min="10" max="30000" step="10" /></td>
+                  <td><input id="max_step_range" type="range" value="5000" min="10" max="30000" step="10" /></td>
+                </tr>
+                <tr>
+                  <td>Погрешность</td>
+                  <td><input class="number_input" id="epsilon_number" type="number" value="0.01" min="0" max="1" step="0.0001" /></td>
+                  <td><input id="epsilon_range" type="range" value="0.01" min="0" max="1" step="0.0001" /></td>
+                </tr>
+            </tbody>
+        </table>
+        <hr>
+        <p>
+          <input id="btn_step" type="button" value="Шаг" />
+          <input id="btn_run" type="button" value="Пуск" />
+          <input id="btn_reset" type="button" value="Перезапуск" />
+          <br>
+        </p>
+        <p>
+          <input id="btn_continuous_run" type="button" value="Непрерывный запуск" />
+        </p>
+      </div>
+    </div>
+
+    <div id="visualize_control" class="control_panel">
+        <div class="nobr control_panel_header">
+            <p><b>Параметры визуализации</b></p>
+        </div>
+        <div class="control_panel_content">
+          <div id="visualize_control_generation_section" class="nobr">
+            Отобразить поколения <br />
+            <table><tbody>
+              <tr>
+                <td>От: </td>
+                <td><input class="number_input" id="generation_from_number" type="number" value="0" min="0" max="0" step="1" /></td>
+                <td><input id="generation_from_range" type="range" value="0.5" min="0" max="1" step="1" /></td> 
+              </tr>
+              <tr>
+                <td>До: </td>
+                <td><input class="number_input" id="generation_to_number" type="number" value="0" min="0" max="0" step="1" /></td>
+                <td><input id="generation_to_range" type="range" value="0.5" min="0" max="1" step="1" /></td> 
+              </tr>
+            </tbody></table>
+            
+          </div> 
+          <p>
+          </p>
+        </div>
+      </div>
+
+
+    <canvas id="myChart" width="400" height="135"></canvas> <!-- график помещается в Canvas -->
+    <div id="my2D" width="400" height="135"></div>
+    <p>Геном лучшей особи: <span id="best_result_genome_span"></span></p>
+    <p>Фитнес-функция лучшей особи: <span id="best_result_fitness_span"></span></p>
+  </body>
+
+  <script src="pagebuild.js"></script> <!-- код со скриптом построения страницы -->
+</html>

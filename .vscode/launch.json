@@ -8,7 +8,7 @@
             "type": "node",
             "request": "launch",
             "name": "Запустить программу",
-            "program": "${workspaceFolder}/lab4\\source.js"
+            "program": "${workspaceFolder}/lab5\\source.js"
         }
     ]
 }
