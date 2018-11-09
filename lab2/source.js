@@ -112,7 +112,7 @@ function Lab2(a, b, N, pc, pm, L = 2, M = 5000, epsilon = 0.0001) {
         
         // interpretation is genome itself
         this.interpret = function() {
-            return genome
+            return this.genome
         }
 
         // calculates fitness function based on the interpretation
