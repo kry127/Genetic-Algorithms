@@ -109,18 +109,21 @@ function bindInputs(elm1, elm2) {
 var input_N = document.getElementById("population_size_number")
 var input_alpha = document.getElementById("alpha_number")
 var input_beta = document.getElementById("beta_number")
+var input_rho = document.getElementById("rho_number")
 var input_M = document.getElementById("max_step_number")
 var input_generation_from = document.getElementById("generation_from_number")
 var input_generation_to = document.getElementById("generation_to_number")
 var range_N = document.getElementById("population_size_range")
 var range_alpha = document.getElementById("alpha_range")
 var range_beta = document.getElementById("beta_range")
+var range_rho = document.getElementById("rho_range")
 var range_M = document.getElementById("max_step_range")
 var range_generation_from = document.getElementById("generation_from_range")
 var range_generation_to = document.getElementById("generation_to_range")
 bindInputs(input_N, range_N);
 bindInputs(input_alpha, range_alpha);
 bindInputs(input_beta, range_beta);
+bindInputs(input_rho, range_rho);
 bindInputs(input_M, range_M);
 bindInputs(input_generation_from, range_generation_from);
 bindInputs(input_generation_to, range_generation_to);
@@ -368,8 +371,9 @@ function create_lab() {
     let N = Number(input_N.value)
     let alpha = Number(input_alpha.value)
     let beta = Number(input_beta.value)
+    let rho = Number(input_rho.value)
     let M = Number(input_M.value)
-    lab = new Lab6(N, M, alpha, beta)
+    lab = new Lab6(N, M, alpha, beta, rho)
     lab.register_data_update_callback(lab_data_callback)
     lab.prepare()
     clearArray(datasetMinFitness.data)
@@ -382,10 +386,12 @@ function create_lab() {
     input_N.onchange = ev=>lab.setN(Number(input_N.value))
     input_alpha.onchange = ev=>lab.setAlpha(Number(input_alpha.value))
     input_beta.onchange = ev=>lab.setBeta(Number(input_beta.value))
+    input_rho.onchange = ev=>lab.setRho(Number(input_rho.value))
     input_M.onchange = ev=>lab.setM(Number(input_M.value))
     range_N.onchange = ev=>lab.setN(Number(range_N.value))
     range_alpha.onchange = ev=>lab.setAlpha(Number(range_alpha.value))
     range_beta.onchange = ev=>lab.setBeta(Number(range_beta.value))
+    range_rho.onchange = ev=>lab.setRho(Number(range_rho.value))
     range_M.onchange = ev=>lab.setM(Number(range_M.value))
 }
 create_lab();

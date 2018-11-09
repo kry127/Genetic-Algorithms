@@ -116,7 +116,7 @@ function Lab5(a, b, N, pc, pm, sigma = 1.2, L = 4, F = 100, M = 5000, epsilon = 
         
         // mutation should implement evolutional strategy
         this.mutation = function() {
-            var old_genome = this.genome
+            var old_genome = this.genome.slice()
             var old_fitness = this.fitness()
             // genome transform with Gaussian distribution
             let DIM = L/2
@@ -127,7 +127,8 @@ function Lab5(a, b, N, pc, pm, sigma = 1.2, L = 4, F = 100, M = 5000, epsilon = 
                 if (this.genome[u] > b[u]) this.genome[u] = b[u]
             }
             // evolutional (1 + 1) strategy
-            if (this.fitness() < old_fitness) {
+            let new_fitness = this.fitness()
+            if (this.fitness() <= old_fitness) {
                 this.genome = old_genome
                 return false
             }
@@ -136,7 +137,7 @@ function Lab5(a, b, N, pc, pm, sigma = 1.2, L = 4, F = 100, M = 5000, epsilon = 
         
         // interpretation is genome itself
         this.interpret = function() {
-            return genome
+            return this.genome
         }
 
         // calculates fitness function based on the interpretation
@@ -156,7 +157,7 @@ function Lab5(a, b, N, pc, pm, sigma = 1.2, L = 4, F = 100, M = 5000, epsilon = 
             for (let k = 0; k < DIM; k++)
                 genome.push(Math.random()*(b[k]-a[k]) + a[k])
             for (let k = DIM; k < L; k++)
-                genome.push (Math.random())
+                genome.push (0.1*Math.random())
             init_generation.push(new fpn_entity(genome))
         }
         return init_generation
@@ -213,7 +214,7 @@ function Lab5(a, b, N, pc, pm, sigma = 1.2, L = 4, F = 100, M = 5000, epsilon = 
             for (var k = 0; k < next.length; k++) {
                 if (Math.random() < pm) { // mutation probability happens
                     ctx.mutation_count++
-                    var success = next[k].mutation(Math.floor(Math.random() * next[k].genome.length))
+                    var success = next[k].mutation()
                     if (success)
                         ctx.mutation_successful++
                 }
